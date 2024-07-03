@@ -67254,7 +67254,7 @@ p=J.al(q.d),o=0
 case 2:if(!p.q()){s=3
 break}n=p.gE(p)
 s=4
-return A.O(q.q2(B.d.W("https://www.youtube.com/channel/",J.b9(n,"channelId"))+"/live"),$async$tw)
+return A.O(q.q2(B.d.W("https://dour-elderly-mandolin.glitch.me/https://www.youtube.com/channel/",J.b9(n,"channelId"))+"/live"),$async$tw)
 case 4:m=b
 l=q.NL(m)
 if(l==="[ERROR]"){new A.a9J(q,m,n).$0()
@@ -67300,7 +67300,7 @@ $0(){this.a.z=!1},
 $S:0}
 A.a9I.prototype={
 $2(a,b){var s=null,r=this.a,q=A.AL(15),p=A.ay(255,206,241,150),o=r.y===b?B.Dr:B.k,n=A.mN(r.r[b],B.Iw),m=r.f[b]
-return A.o3(!1,s,A.Vf(s,A.aca(A.WV(!1,!0,A.kN(A.rH(A.a([new A.j3(B.bf,n,s),A.nY(new A.lm(1.7777777777777777,m.length!==0?new A.od(A.ahQ(s,s,new A.oL("https://img.youtube.com/vi/"+m+"/0.jpg",1,s)),s,B.eW,s):A.RS(A.mN("No live video available",A.kT(s,s,B.i,s,s,s,s,s,s,s,s,s,s,s,s,s,s,!0,s,s,s,s,s,s,s,s)),s,s),s),1)],t.F),B.dW),800,s),s,!0,s,s,s,s,s,s,s,s,s,new A.a9F(r,b,a),s,s,s,s),o,new A.cq(q,new A.cb(p,2,B.W,-1))),B.aL,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.a9G(r,b,a),s,s,s,s),s,s,s,s,!0,s,new A.a9H(r,b),s,s,s,s)},
+return A.o3(!1,s,A.Vf(s,A.aca(A.WV(!1,!0,A.kN(A.rH(A.a([new A.j3(B.bf,n,s),A.nY(new A.lm(1.7777777777777777,m.length!==0?new A.od(A.ahQ(s,s,new A.oL("https://dour-elderly-mandolin.glitch.me/https://img.youtube.com/vi/"+m+"/0.jpg",1,s)),s,B.eW,s):A.RS(A.mN("No live video available",A.kT(s,s,B.i,s,s,s,s,s,s,s,s,s,s,s,s,s,s,!0,s,s,s,s,s,s,s,s)),s,s),s),1)],t.F),B.dW),800,s),s,!0,s,s,s,s,s,s,s,s,s,new A.a9F(r,b,a),s,s,s,s),o,new A.cq(q,new A.cb(p,2,B.W,-1))),B.aL,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.a9G(r,b,a),s,s,s,s),s,s,s,s,!0,s,new A.a9H(r,b),s,s,s,s)},
 $S:420}
 A.a9H.prototype={
 $1(a){var s=this.a
