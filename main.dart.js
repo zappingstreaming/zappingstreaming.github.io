@@ -24266,7 +24266,8 @@ _.a=a
 _.b=b
 _.c=c
 _.d=d},
-Mq:function Mq(a){this.x=a},
+Mq:function Mq(a,b){this.x=a
+this.y=b},
 a55:function a55(a,b){this.a=a
 this.b=b},
 zM:function zM(a,b,c,d,e,f){var _=this
@@ -79250,7 +79251,7 @@ s.m(0,"controls",1)
 s.m(0,"disablekb",0)
 s.m(0,"enablejsapi",1)
 s.m(0,"fs",this.x?1:0)
-s.m(0,"hl","en")
+s.m(0,"hl",this.y)
 s.m(0,"iv_load_policy",1)
 s.m(0,"loop",0)
 s.m(0,"modestbranding","1")
@@ -79267,7 +79268,7 @@ s.m(0,"controls",1)
 s.m(0,"disablekb",0)
 s.m(0,"enablejsapi",1)
 s.m(0,"fs",this.x?1:0)
-s.m(0,"hl","en")
+s.m(0,"hl",this.y)
 s.m(0,"iv_load_policy",1)
 s.m(0,"loop",0)
 s.m(0,"modestbranding","1")
@@ -84563,8 +84564,8 @@ B.jy=new A.Mb(1,"down")
 B.xs=new A.kA(0,0)
 B.Qg=new A.kA(-2,-2)
 B.Qp=new A.Mo("","","",B.o)
-B.RW=new A.Mq(!1)
-B.Qq=new A.Mq(!0)
+B.RW=new A.Mq(!1,"en")
+B.Qq=new A.Mq(!0,"es")
 B.a9=new A.tb(0,"forward")
 B.jF=new A.tb(1,"reverse")
 B.Qr=new A.A8(0,"checkbox")
