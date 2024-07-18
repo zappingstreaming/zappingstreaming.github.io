@@ -7,7 +7,7 @@ const RESOURCES = {"assets/argstreams/argstreams.json": "949f580cf115ee698b6bb8d
 "assets/AssetManifest.bin": "6fca40f029bd02313094a210e1db8f5c",
 "assets/AssetManifest.json": "cf1daa492dcf744a480ce0c2eed605c7",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/fonts/MaterialIcons-Regular.otf": "32fce58e2acb9c420eab0fe7b828b761",
+"assets/fonts/MaterialIcons-Regular.otf": "3895b881d466653636dbf9611945f6f4",
 "assets/images/logo.png": "a5119b5da14b397d8ad7d1f11fe93c13",
 "assets/images/tv.png": "6cc1013f0e9d6baee31f5d1a8574b014",
 "assets/images/youtube-logo.png": "1173d623d182550f01631ccb14f2a347",
@@ -32,9 +32,9 @@ const RESOURCES = {"assets/argstreams/argstreams.json": "949f580cf115ee698b6bb8d
 "icons/Icon-512.png": "fda8e6dc0cda9298141134c9457895da",
 "icons/Icon-maskable-192.png": "b2036395a972ee9aadbc6a32e92de93c",
 "icons/Icon-maskable-512.png": "fda8e6dc0cda9298141134c9457895da",
-"index.html": "14bbd3b060771ec202a466963a932ac7",
-"/": "14bbd3b060771ec202a466963a932ac7",
-"main.dart.js": "def6819d7565aee3ce6b686288ea2f64",
+"index.html": "a076143759e25d12cc1b7d0193eeda21",
+"/": "a076143759e25d12cc1b7d0193eeda21",
+"main.dart.js": "44c86d5e86883c2aa4e8429672895afc",
 "manifest.json": "7a8d1eea6913e82677d8f0deb3a1ebe9",
 "version.json": "088f5f76089b6211e96d0fcc5ba088b2"};
 // The application shell files that are downloaded before a service worker can
