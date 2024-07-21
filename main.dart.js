@@ -80522,8 +80522,11 @@ TC(a){var s,r=A.bV('<meta itemprop="description" content="([\\S\\s]+?)"',!0,!1).
 if(r!=null){s=r.b[1]
 s.toString
 return s}else return"[ERROR]"},
-agx(a){if(A.bV('"status":"LIVE_STREAM_OFFLINE',!0,!1).l7(a)!=null)return!0
-else return!1},
+agx(a){var s,r=A.bV('"playabilityStatus":{"status":"([\\S\\s]+?)"',!0,!1).l7(a)
+if(r!=null){s=r.b[1]
+s.toString
+if(s!=="OK")return!0
+else return!1}else return!1},
 Ex(){return this.aej()},
 aej(){var s=0,r=A.O(t.H),q=this,p,o,n,m,l
 var $async$Ex=A.P(function(a,b){if(a===1)return A.L(b,r)
