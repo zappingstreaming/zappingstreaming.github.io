@@ -24573,7 +24573,7 @@ abD:function abD(){},
 abw:function abw(){},
 aJ0(a,b,c){if(a)if(b!=="")return b
 else return"https://img.youtube.com/vi/"+c+"/0.jpg"
-else if(b!=="")return"https://dour-elderly-mandolin.glitch.me/"+b
+else if(b!=="")return b
 else return"https://dour-elderly-mandolin.glitch.me/https://img.youtube.com/vi/"+c+"/0.jpg"},
 EF:function EF(a){this.a=a},
 zW:function zW(a){this.a=a},
