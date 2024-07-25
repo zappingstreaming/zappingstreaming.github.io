@@ -80603,7 +80603,9 @@ return s}else return"[ERROR]"},
 Rr(a){var s,r=A.bV('"playabilityStatus":{"status":"([\\S\\s]+?)"',!0,!1).l9(a)
 if(r!=null){s=r.b[1]
 s.toString
-if(s!=="OK")return!0
+if(s!=="OK")if(s==="UNPLAYABLE")if(B.d.A(a,'usuarios en espera"'))return!0
+else return!1
+else return!0
 else return!1}else return!1},
 EA(){return this.aem()},
 aem(){var s=0,r=A.O(t.H),q=this,p,o,n,m,l
