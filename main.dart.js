@@ -26000,8 +26000,9 @@ _.a=a
 _.b=b
 _.c=c
 _.d=d},
-NH:function NH(a,b){this.x=a
-this.y=b},
+NH:function NH(a,b,c){this.w=a
+this.x=b
+this.y=c},
 a7j:function a7j(a,b){this.a=a
 this.b=b},
 B_:function B_(a,b,c,d,e,f){var _=this
@@ -85858,7 +85859,7 @@ o.m(0,"cc_load_policy",1)
 o.m(0,"color","white")
 o.m(0,"controls",1)
 o.m(0,"disablekb",0)
-o.m(0,"enablejsapi",1)
+o.m(0,"enablejsapi",this.w?1:0)
 o.m(0,"fs",this.x?1:0)
 o.m(0,"hl",this.y)
 o.m(0,"iv_load_policy",1)
@@ -85879,7 +85880,7 @@ o.m(0,"cc_load_policy",1)
 o.m(0,"color","white")
 o.m(0,"controls",1)
 o.m(0,"disablekb",0)
-o.m(0,"enablejsapi",1)
+o.m(0,"enablejsapi",this.w?1:0)
 o.m(0,"fs",this.x?1:0)
 o.m(0,"hl",this.y)
 o.m(0,"iv_load_policy",1)
@@ -91717,8 +91718,8 @@ B.w=new A.bT(6,"disabled")
 B.ck=new A.bT(7,"error")
 B.Tm=new A.AY(null)
 B.Tt=new A.NF("","","",B.r)
-B.V6=new A.NH(!1,"en")
-B.Tu=new A.NH(!0,"es")
+B.Tu=new A.NH(!1,!0,"es")
+B.V6=new A.NH(!0,!1,"en")
 B.au=new A.tV(0,"forward")
 B.le=new A.tV(1,"reverse")
 B.V8=new A.aeX(0,"elevated")
