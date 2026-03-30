@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "ZappingStreamingWeb",
   "resources": {
-    "hash": "sha256-G7kHFKUgiU5OyM1XexRkQaTcBHU/mbvijyuyBhGjqiE=",
+    "hash": "sha256-ZQGxc9QSl7FL2mfFigTloPQOcrAsreGc8vvTE4rDpwE=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-A16ka545FHaB+QXjyJ4exXh7XpBAAIFnX8YkC4xAng8="
     },
@@ -42,17 +42,17 @@
       "System.Console.wasm": "sha256-qHQyJccmDLuze9bbCQB6P8FUd0fmw2eDuwJ42Nep4mg=",
       "System.Linq.wasm": "sha256-qp+jBRZ3B/xNMAp3R0aNxkT0aRLz8ibvvhTsxFuUWFI=",
       "System.Memory.wasm": "sha256-TLAWSJHCPW3N+zTdWKuQP6jZrmK2z/i3RI8Ys+iwC/c=",
-      "System.Net.Http.Json.wasm": "sha256-jyH3xp+bRNXlB2e4pu/KSaRB4HXDIfX4fDebcVfJcqE=",
-      "System.Net.Http.wasm": "sha256-T4aAEbcaLlGH7x2bROR781wssxwvYmkGJK9/iB/HLRw=",
+      "System.Net.Http.Json.wasm": "sha256-Txbk8MgQtE2Xhg2expSzZELzo8dykbq4zAaB7SHOHK0=",
+      "System.Net.Http.wasm": "sha256-3iip7EZfOk5PaW2b8KhkADJfIerfqWyUYOUTfqr7pgY=",
       "System.Net.Primitives.wasm": "sha256-dSBa23PLlzOUa3eHxDj1nzYQzf95XnmQ/VECEmmnMXw=",
       "System.Private.Uri.wasm": "sha256-B1wW/CYAJHAQLLeBcma0hIK7Ryz5yUGp4iCPEwfGhvI=",
       "System.Runtime.InteropServices.JavaScript.wasm": "sha256-+gNV5SNVka6pMY9R66DfWUg5Ig77f30KM3imF5fzPCE=",
-      "System.Runtime.wasm": "sha256-0Phj4jqVGp35Z+sZ4Ta2qjhcnl3OChJradtFByNJmtM=",
+      "System.Runtime.wasm": "sha256-q5GH6mo9sD7x9tYL7jtYo/xRkqgB7KKcJMHQxBAffrk=",
       "System.Text.Encodings.Web.wasm": "sha256-3U3esquJ7Aeu10CYOpbI1yppzI+hqmeLhyESUijMlSU=",
-      "System.Text.Json.wasm": "sha256-PggDmLhMQUgKzM7od1ti9asNwhqNWwhStHrF5XnqE/k=",
+      "System.Text.Json.wasm": "sha256-DdD8uJ27e4PH11dMHT3SNhu9wHa9KTxVVT0ojwal5gY=",
       "System.Text.RegularExpressions.wasm": "sha256-vTjmo8W+mDOdlHRP0L2XPX6WOPBjjNP1eAT8UWYxM8I=",
-      "System.Private.CoreLib.wasm": "sha256-DJbCcuxVUtVR4kv+9OdoM6dD2X1DiflbSjBzZuf9sVU=",
-      "ZappingStreamingWeb.wasm": "sha256-JHVIuznfv8fS4ezCPHLpvtB1zfvRKFYGSYthdYT/XC4="
+      "System.Private.CoreLib.wasm": "sha256-4yL6A5ddMHNCJa1VvjcuRG9F/5Ci3yNPc1PGEuVyyO8=",
+      "ZappingStreamingWeb.wasm": "sha256-NWxY3grwJkYtYm0vbB1FWSG08l+DFdTMKNRuQd5sD+I="
     }
   },
   "cacheBootResources": true,
