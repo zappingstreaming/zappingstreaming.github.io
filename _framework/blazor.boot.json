@@ -1,7 +1,7 @@
 {
-  "mainAssemblyName": "ZappingStreamingWeb",
+  "mainAssemblyName": "ZappingStreamWeb",
   "resources": {
-    "hash": "sha256-ZQGxc9QSl7FL2mfFigTloPQOcrAsreGc8vvTE4rDpwE=",
+    "hash": "sha256-U/09Bio+0w8FMj7wvUAxoIT+WarROex1WoW5Oj923go=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-A16ka545FHaB+QXjyJ4exXh7XpBAAIFnX8YkC4xAng8="
     },
@@ -52,7 +52,7 @@
       "System.Text.Json.wasm": "sha256-DdD8uJ27e4PH11dMHT3SNhu9wHa9KTxVVT0ojwal5gY=",
       "System.Text.RegularExpressions.wasm": "sha256-vTjmo8W+mDOdlHRP0L2XPX6WOPBjjNP1eAT8UWYxM8I=",
       "System.Private.CoreLib.wasm": "sha256-4yL6A5ddMHNCJa1VvjcuRG9F/5Ci3yNPc1PGEuVyyO8=",
-      "ZappingStreamingWeb.wasm": "sha256-NWxY3grwJkYtYm0vbB1FWSG08l+DFdTMKNRuQd5sD+I="
+      "ZappingStreamWeb.wasm": "sha256-aMwZJGqyTElhsSsUBomv8kzv4TkRyTjpoywwiD1IY40="
     }
   },
   "cacheBootResources": true,
