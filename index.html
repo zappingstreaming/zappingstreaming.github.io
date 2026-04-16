@@ -89,11 +89,9 @@
             }
         }, true);
     </script>
-
     <script>
         window.getSafeFirebaseToken = async () => {
             let intentos = 0;
-            // Espera a que el módulo cargue
             while (typeof window.getFirebaseAppCheckToken === 'undefined' && intentos < 50) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 intentos++;
@@ -107,10 +105,9 @@
     </script>
 
     <script type="module">
-        // Fijate que le puse la versión 10.9.0 y agregué 'getToken' en el segundo import
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-check.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        // CAMBIO ACÁ: Importamos ReCaptchaV3Provider
+        import { initializeAppCheck, ReCaptchaV3Provider, getToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-check.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAnymUVsnZdWfjRWgh0uLxaVmW4zb6GZWE",
@@ -124,23 +121,24 @@
         };
 
         const app = initializeApp(firebaseConfig);
+
+        // Control automático del Debug
         if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
             self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-            console.log("🛠️ Modo App Check Debug activado para localhost");
+            console.log("🛠️ Modo App Check Debug activado");
         } else {
-            // En producción (GitHub Pages), no usamos debug token
             self.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
         }
-        // CRUCIAL: Lo guardamos en 'window.appCheck' para que la función de abajo lo encuentre
+
+        // CAMBIO ACÁ: Usamos el proveedor v3 y pegamos la CLAVE DE SITIO
         window.appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaEnterpriseProvider('6Lc1B7ssAAAAAFSSwjW8TDOa81xX26kmdWOgAr4D'),
+            provider: new ReCaptchaV3Provider('6LfZT7ssAAAAADaZNAxdBH9qvGJuceUt3Yzwb_hz'),
             isTokenAutoRefreshEnabled: true
         });
 
-        // Esta es la función que va a buscar C#
+        // La función de puente para C# queda igual
         window.getFirebaseAppCheckToken = async () => {
             try {
-                // Acá usamos el getToken que importamos arriba y le pasamos el window.appCheck
                 const appCheckTokenResponse = await getToken(window.appCheck, false);
                 return appCheckTokenResponse.token;
             } catch (err) {
@@ -149,6 +147,7 @@
             }
         };
     </script>
+
 
 </body>
 </html>
