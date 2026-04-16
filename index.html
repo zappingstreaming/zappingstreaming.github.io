@@ -38,49 +38,43 @@
         let isDown = false;
         let startX;
         let scrollLeft;
-        let isDragging = false; // Variable clave para diferenciar clic de arrastre
+        let isDragging = false;
 
-        // 1. Detectamos cuando el usuario hace clic (aprieta el botón del mouse)
         document.addEventListener('mousedown', (e) => {
             const slider = e.target.closest('.channel-row');
-            if (!slider) return; // Si no hizo clic en una fila, no hacemos nada
+            if (!slider) return;
 
             isDown = true;
-            isDragging = false; // Asumimos que es un clic hasta que se mueva
+            isDragging = false;
             startX = e.pageX - slider.offsetLeft;
             scrollLeft = slider.scrollLeft;
         });
 
-        // 2. Detectamos si el mouse sale de la zona
         document.addEventListener('mouseleave', (e) => {
             if (!isDown) return;
             const slider = e.target.closest('.channel-row');
             if (slider) isDown = false;
         });
 
-        // 3. Detectamos cuando el usuario suelta el clic
         document.addEventListener('mouseup', (e) => {
             const slider = e.target.closest('.channel-row');
             if (!slider) return;
             isDown = false;
 
-            // Le damos un respiro muy cortito antes de resetear el estado de "arrastre"
             setTimeout(() => {
                 isDragging = false;
             }, 50);
         });
 
-        // 4. Detectamos cuando el usuario mueve el mouse
         document.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             const slider = e.target.closest('.channel-row');
             if (!slider) return;
 
-            e.preventDefault(); // Evitamos que seleccione texto o imágenes por accidente
+            e.preventDefault();
             const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5; // Multiplicador para que el scroll sea más rápido
+            const walk = (x - startX) * 1.5;
 
-            // Si movió el mouse más de 5 píxeles, significa que está arrastrando la fila, no haciendo un clic normal
             if (Math.abs(walk) > 5) {
                 isDragging = true;
             }
@@ -88,14 +82,73 @@
             slider.scrollLeft = scrollLeft - walk;
         });
 
-        // 5. Fase de captura (La manipulación crucial): Bloqueamos el clic en la tarjeta si el usuario estaba arrastrando
         document.addEventListener('click', (e) => {
             if (isDragging) {
                 e.preventDefault();
-                e.stopPropagation(); // Evita que Blazor ejecute el @onclick y abra el canal
+                e.stopPropagation();
             }
         }, true);
     </script>
-</body>
 
+    <script>
+        window.getSafeFirebaseToken = async () => {
+            let intentos = 0;
+            // Espera a que el módulo cargue
+            while (typeof window.getFirebaseAppCheckToken === 'undefined' && intentos < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                intentos++;
+            }
+            if (typeof window.getFirebaseAppCheckToken !== 'undefined') {
+                return await window.getFirebaseAppCheckToken();
+            }
+            console.error("Firebase no cargó a tiempo.");
+            return null;
+        };
+    </script>
+
+    <script type="module">
+        // Fijate que le puse la versión 10.9.0 y agregué 'getToken' en el segundo import
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app-check.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnymUVsnZdWfjRWgh0uLxaVmW4zb6GZWE",
+            authDomain: "zappingstreaming.firebaseapp.com",
+            databaseURL: "https://zappingstreaming-default-rtdb.firebaseio.com",
+            projectId: "zappingstreaming",
+            storageBucket: "zappingstreaming.firebasestorage.app",
+            messagingSenderId: "593976978663",
+            appId: "1:593976978663:web:4f8e7621428606a4708642",
+            measurementId: "G-Q1BJQPZBFS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+            self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+            console.log("🛠️ Modo App Check Debug activado para localhost");
+        } else {
+            // En producción (GitHub Pages), no usamos debug token
+            self.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
+        }
+        // CRUCIAL: Lo guardamos en 'window.appCheck' para que la función de abajo lo encuentre
+        window.appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaEnterpriseProvider('6Lc1B7ssAAAAAFSSwjW8TDOa81xX26kmdWOgAr4D'),
+            isTokenAutoRefreshEnabled: true
+        });
+
+        // Esta es la función que va a buscar C#
+        window.getFirebaseAppCheckToken = async () => {
+            try {
+                // Acá usamos el getToken que importamos arriba y le pasamos el window.appCheck
+                const appCheckTokenResponse = await getToken(window.appCheck, false);
+                return appCheckTokenResponse.token;
+            } catch (err) {
+                console.error("Error obteniendo el token de App Check:", err);
+                return null;
+            }
+        };
+    </script>
+
+</body>
 </html>
