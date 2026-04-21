@@ -1,0 +1,40 @@
+{
+  "background_color": "#ffffff",
+  "description": "Todo el universo del streaming argentino en vivo",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "zappingstream",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "zappingstream",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://zappingstream.com/favicon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "isSquare": true,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 512,
+      "is512x512": true,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://zappingstream.github.io/favicon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "isSquare": true,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 512,
+      "is512x512": true,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ]
+}
