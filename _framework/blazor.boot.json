@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "ZappingStreamWeb",
   "resources": {
-    "hash": "sha256-Q8s0alRfmoILBmhCO+WVfxYIcnQzFM6WBxRZZ0SPIfM=",
+    "hash": "sha256-nAxb3HXn750VlKSKQ4nGo0apRX1HBHeQMH9fAiyHi+0=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-gl+LPrAtgouj0mqEhYiqCNq44b4Kc88H3wmyNo2argY="
     },
@@ -9,7 +9,7 @@
       "dotnet.runtime.js": "sha256-HuKpYzsYoQBMbqMPjy15HX+ShsypvOKN9uGvoA7P/+o="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-cN+T6NvdOEdiY0EtesFEreJQqfp1Hytt0vQiSuiydyA="
+      "dotnet.native.wasm": "sha256-17Tv/ZtyWdCixcaozmCkLxCiKLMvt0g/EA91fdAHdtk="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -44,14 +44,14 @@
       "System.Memory.wasm": "sha256-Kleae0lQNAgLQJOqgk0Bk8pHKwOLk9TyQU0ooh95onQ=",
       "System.Net.Http.wasm": "sha256-5TnGisRt9HqOX9+GBBXstbgGAPZlhV5pBp/gHRPYesI=",
       "System.Net.Primitives.wasm": "sha256-MlSfEMhYoxqfu51UpKtzk7Q8MCRCyhvMvNc17Nsmois=",
-      "System.Private.Uri.wasm": "sha256-Y6Ck8pM22YbxamCQqHnbGC9iVFGuc/6Ort8ZRDIpTTM=",
+      "System.Private.Uri.wasm": "sha256-sJu9/WlfflAz1tPhrnCpS/fmnQ2bWtB6yG3USaFEBy4=",
       "System.Runtime.InteropServices.JavaScript.wasm": "sha256-yxHWoHZD5bxU5zrg3pqKM7CczbtqYcuAAcQl2weJnqo=",
-      "System.Runtime.wasm": "sha256-8wx+XO9wXpLeUEcrFGmkYZ7HFBOPTrcvNudjg468vxk=",
+      "System.Runtime.wasm": "sha256-gTr43H8fpcQEgb8OjPJu1V/oyL+vLLC9zhwjLyhgYqU=",
       "System.Text.Encodings.Web.wasm": "sha256-rjY9Dsbmm9flkS9fZhXI5PgAuNUFhb5L+Zj3Z5ynXPs=",
       "System.Text.Json.wasm": "sha256-no33F6pawVwjMeMBMUYZuodxTgQyN9nB96KC7yiua2w=",
       "System.Text.RegularExpressions.wasm": "sha256-NL5sBkQtOmwbpwZ0yb6AlsOfFlNN4wrT6EdNssIKLIg=",
       "System.Private.CoreLib.wasm": "sha256-tzTwlJ7To40gkXdzpjcjNufwazsAp+akdIugotWsMVw=",
-      "ZappingStreamWeb.wasm": "sha256-5HkWqLryIVovfxKI3dYWFA8dJCfiVPtFp8z2HQXLtPA="
+      "ZappingStreamWeb.wasm": "sha256-v+auB+cniY5KkFc+pzo+eKSH5nXLr5pYT9O6EimWlFM="
     }
   },
   "cacheBootResources": true,
