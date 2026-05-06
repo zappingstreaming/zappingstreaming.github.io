@@ -708,6 +708,29 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
     text-align: center;
 }
 
+.videostatus[b-43nquhehnb] {
+    flex-basis: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin: 25px 10px;
+    color: inherit;
+}
+
+.videostatusspan[b-43nquhehnb] {
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #38B6FF;
+}
+
+.videostatusend[b-43nquhehnb] {
+   flex-grow: 1;
+   height: 1px;
+   background-color: currentColor;
+   margin-left: 15px;
+   opacity: 0.3;
+ }
+
 .spinner[b-43nquhehnb] {
     border: 4px solid rgba(255, 255, 255, 0.1);
     width: 60px;
