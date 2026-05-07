@@ -422,6 +422,41 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
         border-radius: 5px;
     }
 
+/* NUEVAS CLASES PARA AGRUPAR EL TÍTULO Y LAS CARDS */
+.status-group[b-43nquhehnb] {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre el texto ONDEMAND y las tarjetas abajo */
+}
+
+.cards-container[b-43nquhehnb] {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px; /* Separación horizontal entre las tarjetas */
+}
+
+.videostatus[b-43nquhehnb] {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    color: inherit;
+    padding-right: 20px; /* Para que la línea termine antes de chocar con el siguiente grupo */
+}
+
+.videostatusspan[b-43nquhehnb] {
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #38B6FF;
+}
+
+.videostatusend[b-43nquhehnb] {
+    flex-grow: 1;
+    height: 1px;
+    background-color: currentColor;
+    margin-left: 15px;
+    opacity: 0.3;
+}
+
 .title-group[b-43nquhehnb] {
     display: flex;
     align-items: center;
@@ -707,29 +742,6 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
     font-size: 1.2rem;
     text-align: center;
 }
-
-.videostatus[b-43nquhehnb] {
-    flex-basis: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    margin: 25px 10px;
-    color: inherit;
-}
-
-.videostatusspan[b-43nquhehnb] {
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: #38B6FF;
-}
-
-.videostatusend[b-43nquhehnb] {
-   flex-grow: 1;
-   height: 1px;
-   background-color: currentColor;
-   margin-left: 15px;
-   opacity: 0.3;
- }
 
 .spinner[b-43nquhehnb] {
     border: 4px solid rgba(255, 255, 255, 0.1);
