@@ -496,14 +496,12 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
     box-shadow: 0 0 5px rgba(56, 182, 255, 0.5);
 }
 
-/* CAJA PADRE EN EL HTML: Ancho controlado por inline-style (C#) */
 .card-wrapper[b-43nquhehnb] {
     flex: 0 0 auto;
     min-height: 310px;
     position: relative;
 }
 
-/* LA TARJETA ADAPTA SU TAMAÑO AL WRAPPER MATEMÁTICO */
 .channel-card[b-43nquhehnb] {
     background-color: #111;
     border: 2px solid #38B6FF;
@@ -513,8 +511,7 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
     flex-direction: column;
     gap: 15px;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out;
-    width: 100%; /* Ocupa lo que dicte el inline-style */
-    height: 100%;
+    width: 100%;
     position: relative;
     z-index: 1;
 }
@@ -606,17 +603,17 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
         color: #000;
     }
 
-/* --- CLASES REPARADAS PARA QUE NADA EXPLOTE --- */
 
+/* --- IMAGENES --- */
 .videos-horizontal-list[b-43nquhehnb] {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    gap: 15px; /* Misma separación que la matemática en HTML */
+    gap: 15px;
 }
 
 .image-container[b-43nquhehnb] {
-    width: 280px; /* CANDADO DE ANCHO */
+    width: 280px; /* Candado base para grilla normal */
     aspect-ratio: 16 / 10;
     display: flex;
     justify-content: center;
@@ -628,8 +625,12 @@ html[b-43nquhehnb], body[b-43nquhehnb] {
     position: relative;
 }
 
+.expanded-card .image-container[b-43nquhehnb] {
+    width: 100% !important;
+}
+
 .secondary-video[b-43nquhehnb] {
-    width: 220px !important; /* CANDADO DE ANCHO SECUNDARIO */
+    width: 220px !important;
 }
 
 .badge-vivo[b-43nquhehnb] {
