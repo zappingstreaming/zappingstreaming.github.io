@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "ZappingStreamWeb",
   "resources": {
-    "hash": "sha256-13xyO+XyTaTX1jqLaNztaWpUtnPBOLP2sxee1qkeHnY=",
+    "hash": "sha256-mq6614/zpUeVLoVYS6gRWsttIeNTz/3iy9EPr82bxvk=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-gl+LPrAtgouj0mqEhYiqCNq44b4Kc88H3wmyNo2argY="
     },
@@ -9,7 +9,7 @@
       "dotnet.runtime.js": "sha256-HuKpYzsYoQBMbqMPjy15HX+ShsypvOKN9uGvoA7P/+o="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-Uuf66GaXu79Q7lci4yM9skdPm4bDKL8AmxrTzk3vFv0="
+      "dotnet.native.wasm": "sha256-vp/7x2tVSUPWzqZcrDoyLz1m+DaBpj59TDr8mBDmzqI="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -51,7 +51,7 @@
       "System.Text.Json.wasm": "sha256-no33F6pawVwjMeMBMUYZuodxTgQyN9nB96KC7yiua2w=",
       "System.Text.RegularExpressions.wasm": "sha256-NL5sBkQtOmwbpwZ0yb6AlsOfFlNN4wrT6EdNssIKLIg=",
       "System.Private.CoreLib.wasm": "sha256-tzTwlJ7To40gkXdzpjcjNufwazsAp+akdIugotWsMVw=",
-      "ZappingStreamWeb.wasm": "sha256-RXNmiHRFrYkSEoCOg9849/8pIy+r7QgQg7WZZE32W0A="
+      "ZappingStreamWeb.wasm": "sha256-iEHWrsx8LHrL7EubsxcVFrTuewu0eKxw5gFwbn3bSjY="
     }
   },
   "cacheBootResources": true,
