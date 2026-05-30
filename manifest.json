@@ -1,6 +1,6 @@
 {
   "name": "Zapping Stream",
-  "short_name": "Zapping",
+  "short_name": "Zapping Stream",
   "description": "Todos los canales de streaming de Argentina en un solo lugar",
   "start_url": "/",
   "display": "standalone",
