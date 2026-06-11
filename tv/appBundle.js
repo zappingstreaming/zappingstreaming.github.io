@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Thu, 11 Jun 2026 23:06:50 GMT
+ * Generated: Thu, 11 Jun 2026 23:20:01 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7752,16 +7752,6 @@ var APP_com_domain_app_ZappingStream = (function () {
 
       // Escuchar cuando la imagen carga exitosamente
       this.tag('Image').on('txLoaded', () => {
-        const texture = this.tag('Image').texture;
-        if (texture && texture.source) {
-          // Detecta si YouTube devolvió su clásica imagen gris genérica (120x90)
-          const w = texture.source.w;
-          const h = texture.source.h;
-          if (w === 120 && h === 90 && this._imageUrl && this._imageUrl.includes('ytimg.com')) {
-            this._handleImageError();
-            return;
-          }
-        }
         // Si está todo bien, mostramos la imagen
         this.tag('Image').alpha = 1;
         this.tag('Fallback').alpha = 0;
@@ -7790,7 +7780,15 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (this._imageUrl) {
         this.tag('Fallback').alpha = 1; // Aseguramos que el fallback se vea mientras carga
         this.tag('Image').alpha = 1; // Restauramos la visibilidad por si se reusa la tarjeta
-        this.tag('Image').src = this._imageUrl;
+
+        // --- SOLUCIÓN DEFINITIVA A CORS EN WEBGL ---
+        // WebGL es estricto: si YouTube no envía la cabecera CORS, la textura colapsa.
+        // Pasamos las imágenes de Google/YouTube por un Image CDN (wsrv.nl) que fuerza el CORS.
+        let finalSrc = this._imageUrl;
+        if (finalSrc.includes('ytimg.com') || finalSrc.includes('youtube.com') || finalSrc.includes('ggpht.com')) {
+          finalSrc = "https://wsrv.nl/?url=".concat(encodeURIComponent(finalSrc));
+        }
+        this.tag('Image').src = finalSrc;
       } else {
         this._handleImageError();
       }
@@ -8367,6 +8365,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         TimeBadge: {
           y: SPACING.PADDING_SMALL,
           x: SPACING.PADDING_SMALL,
+          h: 28,
           rect: true,
           color: COLORS.BG_PANEL,
           shader: {
@@ -8375,7 +8374,8 @@ var APP_com_domain_app_ZappingStream = (function () {
           },
           Label: {
             x: SPACING.PADDING_SMALL * 1.5,
-            y: SPACING.PADDING_SMALL,
+            mountY: 0.5,
+            y: 16,
             text: {
               text: '',
               fontSize: TYPOGRAPHY.FONT_SIZE_SMALL,
@@ -8425,15 +8425,17 @@ var APP_com_domain_app_ZappingStream = (function () {
       const start = formatTime(ev.ActualStartTime || ev.ScheduledStartTime || ev.AddedAt);
       let timeText = start;
       if (ev.IsPast && !ev.Live) {
-        timeText = "".concat(start, " - ").concat(formatTime(ev.ActualEndTime));
+        const endStr = ev.ActualEndTime || ev.EndedAt;
+        const end = endStr ? formatTime(endStr) : "??:??";
+        timeText = "".concat(start, " - ").concat(end);
       }
       const isNotNow = !ev.Live;
       this.tag('TimeBadge').color = isNotNow ? COLORS.BG_DARK : COLORS.LIVE_BADGE;
       this.tag('TimeBadge.Label').text.text = timeText;
       this.tag('TimeBadge.Label').text.textColor = isNotNow ? COLORS.TEXT_GRAY : COLORS.TEXT_WHITE;
 
-      // Ajustar el ancho del badge según el texto
-      this.tag('TimeBadge').w = Math.max(timeText.length * 10 + 24, 80);
+      // Ajustar dinámicamente el ancho del badge en base al texto
+      this.tag('TimeBadge').w = Math.max(timeText.length * 8 + 24, 60);
       const rawImageUrl = ev.ThumbnailUrl || ev.channel.ChannelImgUrl;
       this.tag('VideoWrapper').item = {
         imageUrl: rawImageUrl ? getFreshImage(rawImageUrl, ev.channel.LastActivityAt) : undefined,
@@ -8450,19 +8452,30 @@ var APP_com_domain_app_ZappingStream = (function () {
     _focus() {
       this.patch({
         smooth: {
-          scale: 1.02
+          scale: 1.05
         },
+        color: COLORS.BG_PANEL,
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
-          radius: 12
-        }
+          radius: BORDER_RADIUS.LARGE,
+          stroke: 4,
+          strokeColor: COLORS.ACCENT_BLUE
+        },
+        zIndex: 10
       });
     }
     _unfocus() {
       this.patch({
         smooth: {
           scale: 1.0
-        }
+        },
+        color: COLORS.BG_DARK,
+        shader: {
+          type: Lightning$1.shaders.RoundedRectangle,
+          radius: BORDER_RADIUS.LARGE,
+          stroke: 0
+        },
+        zIndex: 1
       });
     }
     _handleEnter() {
