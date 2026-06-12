@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Thu, 11 Jun 2026 23:20:01 GMT
+ * Generated: Fri, 12 Jun 2026 15:10:19 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7492,6 +7492,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     // Se dispara cuando el usuario aprieta la tecla Atrás/Back
     _handleBack() {
       if (this._onCloseCallback) this._onCloseCallback();
+      return true;
     }
 
     // Efecto visual de "Seleccionado" sobre el botón Volver
@@ -7541,19 +7542,23 @@ var APP_com_domain_app_ZappingStream = (function () {
           y: 60,
           alpha: 1,
           rect: true,
-          color: 0xb3000000,
-          // Fondo negro semi-transparente
-          w: 360,
+          color: 0xff38b6ff,
+          // Color celeste activo simulando que está "enfocado"
+          shader: {
+            type: Lightning$1.shaders.RoundedRectangle,
+            radius: 8
+          },
+          w: 420,
           h: 60,
           Text: {
             mount: 0.5,
-            x: 180,
+            x: 210,
             y: 30,
             text: {
-              text: 'Atrás / Esc para salir',
+              text: '‹ Presiona OK para salir',
               fontSize: 24,
-              fontFace: 'Regular',
-              textColor: 0xffffffff
+              fontFace: 'Bold',
+              textColor: 0xff000000
             }
           }
         }
@@ -7562,6 +7567,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     _init() {
       this._timer = null;
       this._isClosing = false;
+      this._focusInterval = null;
     }
 
     // Se ejecuta automáticamente cuando el componente se muestra en pantalla
@@ -7575,6 +7581,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     _inactive() {
       this._destroyIframe();
       this._clearTimer();
+      this._clearFocusLock();
     }
 
     // Setters equivalentes a los Props de React
@@ -7604,14 +7611,34 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._iframe.style.left = '0';
       this._iframe.style.width = '100vw';
       this._iframe.style.height = '100vh';
-      this._iframe.style.zIndex = '-1';
+      this._iframe.style.zIndex = '0';
       this._iframe.style.border = 'none';
+
+      // Bloqueo total: Evitamos que YouTube pueda robarse el foco nativo 
+      // del teclado o control remoto bajo ninguna circunstancia.
+      this._iframe.style.pointerEvents = 'none';
+      this._iframe.setAttribute('tabindex', '-1');
       document.body.appendChild(this._iframe);
+
+      // Evitamos que el autoplay de YouTube le robe el foco a Lightning JS
+      this._lockFocusToApp();
     }
     _destroyIframe() {
       if (this._iframe && this._iframe.parentNode) {
         this._iframe.parentNode.removeChild(this._iframe);
         this._iframe = null;
+      }
+      this._clearFocusLock();
+    }
+    _lockFocusToApp() {
+      this._clearFocusLock();
+      // Bloqueo constante para asegurar que YouTube JAMÁS tome el control
+      this._focusInterval = setInterval(() => window.focus(), 500);
+    }
+    _clearFocusLock() {
+      if (this._focusInterval) {
+        clearInterval(this._focusInterval);
+        this._focusInterval = null;
       }
     }
     _wakeUpControls() {
@@ -7623,6 +7650,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             alpha: 0
           } // Desvanecimiento suave en Lightning
         });
+        this._timer = null; // Limpiamos la referencia para saber que está oculto
       }, 4000);
     }
     _clearTimer() {
@@ -7634,11 +7662,22 @@ var APP_com_domain_app_ZappingStream = (function () {
 
     // Este método intercepta la tecla Escape y Backspace (Atrás) por defecto en Lightning
     _handleBack() {
-      if (this._isClosing) return;
+      if (this._isClosing) return true;
       this._isClosing = true;
       if (this._onCloseCallback) {
         this._onCloseCallback();
       }
+      return true;
+    }
+
+    // Interceptamos el botón OK/Enter del control remoto
+    _handleEnter() {
+      if (this._timer !== null) {
+        this._handleBack(); // Si el botón está visible (timer activo) cerramos el video
+      } else {
+        this._wakeUpControls(); // Si estaba oculto, lo despertamos para que el usuario lo vea
+      }
+      return true;
     }
 
     // Este método intercepta cualquier otra tecla (flechas, enter)
@@ -8250,14 +8289,6 @@ var APP_com_domain_app_ZappingStream = (function () {
         abrirCanalOnStreams = _this$_item2.abrirCanalOnStreams;
       if (!isExpanded) {
         if (isLiveGroup && abrirCanal) abrirCanal(channel);else if (abrirCanalOnStreams) abrirCanalOnStreams(channel);
-      }
-    }
-
-    // Atajo para la funcionalidad "toggleInfo" (Por ej: presionar tecla arriba o alguna otra lógica)
-    // Opcionalmente, podrías asignar la tecla "Menu" o "Espacio" para que dispare esta acción.
-    _handleMenu() {
-      if (this._item.toggleInfo) {
-        this._item.toggleInfo(this._item.channel.ChannelName);
       }
     }
   }
@@ -9599,9 +9630,23 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._focusedSection = 'header'; // 'header', 'content', 'footer', 'modal', 'player', 'search'
       this._contentRowIndex = 0; // 0 = CardsLive, 1 = CardsDemand (para navegación vertical)
 
+      // --- PUENTE UNIVERSAL (BOTÓN ATRÁS NATIVO) ---
+      // Atrapa el botón atrás físico de la tele sin importar qué rompió el DOM
+      window.addEventListener('appGoBack', () => {
+        const activeModule = this._getFocused(); // Vemos qué componente tiene tu foco (Player, Search, etc)
+        if (activeModule && typeof activeModule._handleBack === 'function') {
+          activeModule._handleBack(); // Forzamos su cierre nativo de Lightning
+        }
+      });
+
       // Configurar Modales
       this.tag('Overlays.Info').onClose = () => {
         this._focusedSection = 'footer';
+        this.tag('Overlays.Info').patch({
+          smooth: {
+            alpha: 0
+          }
+        });
         this._updateUI();
         this._refocus();
       };
@@ -9958,9 +10003,71 @@ var APP_com_domain_app_ZappingStream = (function () {
       }
       return this;
     }
+
+    // --- ESCUDO FINAL ---
+    // Si un evento "Atrás" llega hasta la raíz de la app sin ser manejado,
+    // lo absorbemos devolviendo true para evitar que intente cerrar la app o abrir modales.
+    _handleBack() {
+      return true;
+    }
   }
 
   function index () {
+    // --- AJUSTE UNIVERSAL PARA CUALQUIER SMART TV ---
+    // Inyectamos CSS global para garantizar que el canvas de Lightning
+    // se adapte siempre al 100% de la pantalla sin importar el SO 
+    // (WebOS, Tizen, Android TV, Roku, etc.) y sin usar setTimeouts.
+    const style = document.createElement('style');
+    style.innerHTML = "\n    html, body {\n      margin: 0; padding: 0;\n      width: 100%; height: 100%;\n      overflow: hidden; background-color: #000;\n    }\n    canvas {\n      width: 100% !important; height: 100% !important;\n      position: absolute !important; top: 0; left: 0;\n      z-index: 1 !important;\n    }\n  ";
+    document.head.appendChild(style);
+
+    // --- PUENTE CENTRALIZADO: BOTÓN ATRÁS ---
+    // Esta función emite el evento que tu App.js SÍ está esperando escuchar
+    const fireGoBack = () => {
+      window.dispatchEvent(new CustomEvent('appGoBack'));
+
+      // Por las dudas, también disparamos el escape tradicional para Lightning
+      const escEvent = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        code: 'Escape',
+        bubbles: true
+      });
+      Object.defineProperty(escEvent, 'keyCode', {
+        get: () => 27
+      });
+      window.dispatchEvent(escEvent);
+    };
+
+    // 1. TRAMPA CAPACITOR (ANDROID TV) - ¡El que evita que la app se cierre nativamente!
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      // Usamos import dinámico para no romper Rollup/Lightning (evita el error app$1 is not defined)
+      // Esto inicializa el plugin correctamente y secuestra el botón Atrás de Android OS.
+      import('@capacitor/app').then(_ref => {
+        let CapApp = _ref.App;
+        CapApp.addListener('backButton', () => fireGoBack());
+      }).catch(err => console.error('Error cargando Capacitor App', err));
+    }
+
+    // 2. TRAMPA TIZEN (SAMSUNG TV)
+    if (window.tizen) {
+      document.addEventListener('tizenhwkey', e => {
+        if (e.keyName === 'Back' || e.keyName === 'Return') {
+          e.preventDefault();
+          fireGoBack();
+        }
+      });
+    }
+
+    // --- TRAMPA UNIVERSAL PARA EL BOTÓN ATRÁS (HISTORY API) ---
+    window.history.pushState({
+      noBackExitsApp: true
+    }, '');
+    window.addEventListener('popstate', () => {
+      window.history.pushState({
+        noBackExitsApp: true
+      }, '');
+      fireGoBack();
+    });
     return Launch(App, ...arguments);
   }
 
