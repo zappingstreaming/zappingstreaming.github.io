@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Fri, 12 Jun 2026 15:10:19 GMT
+ * Generated: Fri, 12 Jun 2026 16:24:44 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7555,7 +7555,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             x: 210,
             y: 30,
             text: {
-              text: '‹ Presiona OK para salir',
+              text: '‹ Presiona Atrás para salir',
               fontSize: 24,
               fontFace: 'Bold',
               textColor: 0xff000000
@@ -7613,15 +7613,12 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._iframe.style.height = '100vh';
       this._iframe.style.zIndex = '0';
       this._iframe.style.border = 'none';
-
-      // Bloqueo total: Evitamos que YouTube pueda robarse el foco nativo 
-      // del teclado o control remoto bajo ninguna circunstancia.
-      this._iframe.style.pointerEvents = 'none';
-      this._iframe.setAttribute('tabindex', '-1');
       document.body.appendChild(this._iframe);
 
-      // Evitamos que el autoplay de YouTube le robe el foco a Lightning JS
-      this._lockFocusToApp();
+      // Permitimos que el iframe reciba el foco para poder adelantar/atrasar con el control
+      setTimeout(() => {
+        if (this._iframe) this._iframe.focus();
+      }, 500);
     }
     _destroyIframe() {
       if (this._iframe && this._iframe.parentNode) {
@@ -7629,11 +7626,6 @@ var APP_com_domain_app_ZappingStream = (function () {
         this._iframe = null;
       }
       this._clearFocusLock();
-    }
-    _lockFocusToApp() {
-      this._clearFocusLock();
-      // Bloqueo constante para asegurar que YouTube JAMÁS tome el control
-      this._focusInterval = setInterval(() => window.focus(), 500);
     }
     _clearFocusLock() {
       if (this._focusInterval) {
@@ -7931,18 +7923,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     const separator = url.includes('?') ? '&' : '?';
     return "".concat(url).concat(separator, "t=").concat(timestamp);
   };
-  const formatActivityDate = dateString => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
-    return date.toLocaleString('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   class ChannelCard extends Lightning$1.Component {
     static _template() {
@@ -7955,10 +7935,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
           radius: 15,
-          stroke: 2,
-          strokeColor: 0xff38b6ff
+          stroke: 0,
+          strokeColor: 0x00000000
         },
-        // border: 2px solid var(--accent-blue)
         clipping: true,
         // Cabecera: Logo y Título
         Header: {
@@ -7972,9 +7951,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             // Se muestra solo si hay imagen
             shader: {
               type: Lightning$1.shaders.RoundedRectangle,
-              radius: 16,
-              stroke: 1,
-              strokeColor: 0xff38b6ff
+              radius: 16
             }
           },
           Title: {
@@ -7983,7 +7960,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             text: {
               text: '',
               fontSize: 22,
-              fontFace: 'Bold',
+              fontFace: 'Regular',
               textColor: 0xffffffff,
               wordWrapWidth: 160,
               maxLines: 1,
@@ -8001,7 +7978,7 @@ var APP_com_domain_app_ZappingStream = (function () {
               type: Lightning$1.shaders.RoundedRectangle,
               radius: 8,
               stroke: 1,
-              strokeColor: 0xff38b6ff
+              strokeColor: 0xff888888
             },
             Text: {
               mount: 0.5,
@@ -8011,7 +7988,7 @@ var APP_com_domain_app_ZappingStream = (function () {
                 text: 'Info',
                 fontSize: 16,
                 fontFace: 'Regular',
-                textColor: 0xff38b6ff
+                textColor: 0xff888888
               }
             }
           }
@@ -8047,39 +8024,6 @@ var APP_com_domain_app_ZappingStream = (function () {
               maxLines: 10,
               lineHeight: 26
             }
-          }
-        },
-        // Pie de página: Última actividad
-        Footer: {
-          y: 250,
-          // Se ajustará dinámicamente según la altura
-          x: 160,
-          mountX: 0.5,
-          alpha: 1,
-          Bg: {
-            mountX: 0.5,
-            x: 0,
-            y: 0,
-            rect: true,
-            color: 0xff222222,
-            // var(--bg-panel)
-            shader: {
-              type: Lightning$1.shaders.RoundedRectangle,
-              radius: 6,
-              stroke: 1,
-              strokeColor: 0xff333333
-            },
-            w: 200,
-            h: 30
-          },
-          Text: {
-            mount: 0.5,
-            x: 0,
-            y: 16,
-            text: '',
-            fontSize: 16,
-            fontFace: 'Regular',
-            textColor: 0xffaaaaaa
           }
         }
       };
@@ -8130,7 +8074,6 @@ var APP_com_domain_app_ZappingStream = (function () {
       this.h = targetHeight;
       this.tag('Header').w = targetWidth - 40;
       this.tag('Header.InfoBtn').x = targetWidth - 40 - 60;
-      this.tag('Footer').x = targetWidth / 2;
 
       // --- Render Header ---
       const showMiniLogo = channel.ChannelImgUrl && (isExpanded || isLiveGroup && mainActive);
@@ -8139,12 +8082,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         alpha: showMiniLogo ? 1 : 0
       });
       this.tag('Header.Title').patch({
-        text: {
-          text: channel.ChannelName
-        },
         x: showMiniLogo ? 45 : 0,
-        // Empujamos el texto si hay logo
         text: {
+          text: channel.ChannelName + ' ',
           wordWrapWidth: targetWidth - 40 - 60 - (showMiniLogo ? 55 : 10)
         }
       });
@@ -8210,12 +8150,6 @@ var APP_com_domain_app_ZappingStream = (function () {
         });
       }
       this.tag('Body').children = bodyItems;
-
-      // --- Render Footer ---
-      this.tag('Footer').y = targetHeight - 40; // Posición al fondo
-      const footerText = formatActivityDate ? formatActivityDate(channel.LastActivityAt) : channel.LastActivityAt;
-      this.tag('Footer.Text').text.text = footerText;
-      this.tag('Footer.Bg').w = footerText.length * 8 + 30;
     }
 
     // Equivalente a `setFailedVideos(prev => new Set(prev).add(id))`
@@ -8233,25 +8167,16 @@ var APP_com_domain_app_ZappingStream = (function () {
         smooth: {
           scale: 1.05
         },
-        color: 0xff333333,
-        // background-color: #333
+        color: 0xff2a2a2a,
+        // background-color un poquito más claro
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
           radius: 15,
-          stroke: 8,
+          stroke: 4,
           strokeColor: 0xff38b6ff
         },
-        // outline: 8px solid var(--accent-blue)
+        // Borde celeste 4px
         zIndex: 10
-      });
-      this.tag('Header.InfoBtn').patch({
-        color: 0xff38b6ff,
-        // background-color: var(--accent-blue)
-        Text: {
-          text: {
-            textColor: 0xff1a1a1a
-          }
-        } // color: var(--bg-black)
       });
     }
     _unfocus() {
@@ -8263,19 +8188,11 @@ var APP_com_domain_app_ZappingStream = (function () {
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
           radius: 15,
-          stroke: 2,
-          strokeColor: 0xff38b6ff
+          stroke: 0,
+          strokeColor: 0x00000000
         },
-        // border: 2px solid var(--accent-blue)
+        // Sin borde inactivo
         zIndex: 1
-      });
-      this.tag('Header.InfoBtn').patch({
-        color: 0x00000000,
-        Text: {
-          text: {
-            textColor: 0xff38b6ff
-          }
-        }
       });
     }
 
@@ -8526,15 +8443,15 @@ var APP_com_domain_app_ZappingStream = (function () {
         h: 280,
         // Altura fija de la fila
         Sidebar: {
-          w: 100,
+          w: 140,
           h: 260,
           rect: true,
           color: COLORS.BG_BLACK,
           Logo: {
-            x: 10,
+            x: 30,
             y: 15,
-            w: COMPONENT_SIZE.LOGO_SMALL,
-            h: COMPONENT_SIZE.LOGO_SMALL,
+            w: COMPONENT_SIZE.LOGO_MEDIUM,
+            h: COMPONENT_SIZE.LOGO_MEDIUM,
             shader: {
               type: Lightning$1.shaders.RoundedRectangle,
               radius: BORDER_RADIUS.CIRCLE
@@ -8542,21 +8459,21 @@ var APP_com_domain_app_ZappingStream = (function () {
           },
           Name: {
             x: 10,
-            y: 70,
-            w: 80,
+            y: 105,
+            w: 120,
             text: {
               text: '',
               fontSize: TYPOGRAPHY.FONT_SIZE_SMALL,
               fontFace: TYPOGRAPHY.FONT_FAMILY,
               textColor: COLORS.ACCENT_BLUE,
-              wordWrapWidth: 80,
+              wordWrapWidth: 120,
               maxLines: 2,
               textAlign: 'center'
             }
           },
           InfoBtn: {
-            x: 10,
-            y: 170,
+            x: 30,
+            y: 180,
             w: 80,
             h: COMPONENT_SIZE.BUTTON_HEIGHT_SMALL,
             rect: true,
@@ -8580,14 +8497,14 @@ var APP_com_domain_app_ZappingStream = (function () {
         },
         // Slider horizontal de videos
         TrackBounds: {
-          x: 115,
-          y: 0,
-          w: 1805,
-          h: 280,
+          x: 160,
+          y: -10,
+          w: 1760,
+          h: 300,
           clipping: true,
           Slider: {
             x: 0,
-            y: 0,
+            y: 10,
             Items: {}
           }
         }
@@ -8665,7 +8582,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         const evIndex = this._index - 1;
         let targetX = 0;
         if (evIndex > 0) {
-          targetX = -(evIndex * 295) + 100; // Desplazar dejando un poco de margen visual (con gap de 15px)
+          targetX = -(evIndex * 280) + 60; // Desplazar exacto dejando 60px de margen respecto a la columna
         }
         if (instant) {
           this.tag('TrackBounds.Slider').x = targetX;
@@ -10013,6 +9930,14 @@ var APP_com_domain_app_ZappingStream = (function () {
   }
 
   function index () {
+    let appSettings = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    let platformSettings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    let appData = arguments.length > 2 ? arguments[2] : undefined;
+    // Ocultar etiqueta celeste de APP y SDK (Inspector de Lightning)
+    appSettings.debug = false;
+    appSettings.showVersion = false;
+    platformSettings.inspector = false;
+
     // --- AJUSTE UNIVERSAL PARA CUALQUIER SMART TV ---
     // Inyectamos CSS global para garantizar que el canvas de Lightning
     // se adapte siempre al 100% de la pantalla sin importar el SO 
@@ -10068,7 +9993,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       }, '');
       fireGoBack();
     });
-    return Launch(App, ...arguments);
+    return Launch(App, appSettings, platformSettings, appData);
   }
 
   return index;
