@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 13 Jun 2026 19:40:36 GMT
+ * Generated: Sat, 13 Jun 2026 19:48:49 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7542,14 +7542,14 @@ var APP_com_domain_app_ZappingStream = (function () {
             type: Lightning$1.shaders.RoundedRectangle,
             radius: 8
           },
-          w: 550,
+          w: 650,
           h: 60,
           Text: {
             mount: 0.5,
-            x: 275,
+            x: 325,
             y: 30,
             text: {
-              text: 'OK: Pausar | ‹ Atrás: Salir',
+              text: '‹ Atrás | OK: Pausa | ◂ 15s ▸',
               fontSize: 24,
               fontFace: 'Bold',
               textColor: 0xff000000
@@ -7593,6 +7593,20 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _createIframe() {
       if (this._iframe || !this._videoId) return;
+      this._currentTime = 0;
+      this._duration = 0;
+
+      // Escuchamos los mensajes de YouTube para mantener sincronizado el tiempo actual
+      this._messageListener = event => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'infoDelivery' && data.info) {
+            if (data.info.currentTime !== undefined) this._currentTime = data.info.currentTime;
+            if (data.info.duration !== undefined) this._duration = data.info.duration;
+          }
+        } catch (e) {}
+      };
+      window.addEventListener('message', this._messageListener);
       this._iframe = document.createElement('iframe');
       this._iframe.className = 'tv-iframe';
       // Agregamos enablejsapi=1 para poder enviarle comandos mediante postMessage
@@ -7609,11 +7623,24 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._iframe.style.height = '100vh';
       this._iframe.style.zIndex = '0';
       this._iframe.style.border = 'none';
+
+      // Le indicamos a YouTube que nos empiece a enviar los reportes de tiempo
+      this._iframe.onload = () => {
+        if (this._iframe && this._iframe.contentWindow) {
+          this._iframe.contentWindow.postMessage(JSON.stringify({
+            event: 'listening'
+          }), '*');
+        }
+      };
       document.body.appendChild(this._iframe);
       this._isPlaying = true;
       this._updateControlsText();
     }
     _destroyIframe() {
+      if (this._messageListener) {
+        window.removeEventListener('message', this._messageListener);
+        this._messageListener = null;
+      }
       if (this._iframe) {
         // Forzamos un STOP nativo en el iframe antes de destruirlo
         // (evita el bug de Tizen donde el audio sigue sonando de fondo)
@@ -7658,9 +7685,9 @@ var APP_com_domain_app_ZappingStream = (function () {
     _updateControlsText() {
       const textNode = this.tag('Controls.Text');
       if (this._isPlaying) {
-        textNode.text.text = 'OK: Pausar | ‹ Atrás: Salir';
+        textNode.text.text = '‹ Atrás | OK: Pausa | ◂ 15s ▸';
       } else {
-        textNode.text.text = '⏸ PAUSADO | OK: Reproducir | ‹ Atrás: Salir';
+        textNode.text.text = '⏸ PAUSADO | OK: Reproducir | ‹ Atrás';
       }
     }
 
@@ -7690,6 +7717,33 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._updateControlsText();
       this._wakeUpControls();
       return true;
+    }
+
+    // --- Controles de Tiempo (Izquierda / Derecha) ---
+    _handleLeft() {
+      this._seek(-15);
+      return true;
+    }
+    _handleRight() {
+      this._seek(15);
+      return true;
+    }
+    _seek(seconds) {
+      if (this._iframe && this._iframe.contentWindow) {
+        // Calculamos el nuevo tiempo asegurándonos de no ir a negativos ni pasarnos del final
+        this._currentTime = Math.max(0, this._currentTime + seconds);
+        if (this._duration > 0) {
+          this._currentTime = Math.min(this._currentTime, this._duration);
+        }
+
+        // Le ordenamos a YouTube que salte a ese segundo (true permite hacer buffering anticipado)
+        this._iframe.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: 'seekTo',
+          args: [this._currentTime, true]
+        }), '*');
+        this._wakeUpControls();
+      }
     }
 
     // Este método intercepta cualquier otra tecla (flechas, enter)
