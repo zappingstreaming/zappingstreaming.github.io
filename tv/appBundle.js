@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Fri, 12 Jun 2026 20:14:35 GMT
+ * Generated: Sat, 13 Jun 2026 19:06:32 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -6679,14 +6679,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       // const token = await getRecaptchaToken();
 
       // 5. Adjuntar el token en los headers de tu fetch original
-      const response = await fetch(API_URL$1, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // Descomenta la siguiente línea y ajusta la cabecera según lo que espere tu backend:
-          // 'Authorization': `Bearer ${token}` 
-        }
-      });
+      const response = await fetch(API_URL$1);
       if (!response.ok) {
         throw new Error("Error HTTP: ".concat(response.status, " - ").concat(response.statusText));
       }
@@ -6703,12 +6696,13 @@ var APP_com_domain_app_ZappingStream = (function () {
           if (Array.isArray(videos)) {
             return videos.filter(v => v.ToBeCut !== true);
           }
-          return Object.fromEntries(Object.entries(videos).filter(_ref => {
-            let _ref2 = _slicedToArray(_ref, 2),
-              _ = _ref2[0],
-              v = _ref2[1];
-            return v.ToBeCut !== true;
-          }));
+          const result = {};
+          Object.keys(videos).forEach(key => {
+            if (videos[key].ToBeCut !== true) {
+              result[key] = videos[key];
+            }
+          });
+          return result;
         };
         return {
           ...channel,
@@ -9252,8 +9246,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         this.fireAncestors('$closeSearchModal');
         return true;
       } else if (key === 'BUSCAR') {
-        var _this$_onSearch;
-        (_this$_onSearch = this._onSearch) === null || _this$_onSearch === void 0 || _this$_onSearch.call(this, this._searchText.trim());
+        if (this._onSearch) this._onSearch(this._searchText.trim());
         this.fireAncestors('$closeSearchModal');
         return true;
       } else {
@@ -9973,14 +9966,23 @@ var APP_com_domain_app_ZappingStream = (function () {
       }).catch(err => console.error('Error cargando Capacitor App', err));
     }
 
-    // 2. TRAMPA TIZEN (SAMSUNG TV)
+    // 2. TRAMPAS PARA SMART TV (SAMSUNG / LG / ETC)
+    // Usamos la fase de captura (true) para interceptar el botón Atrás ANTES 
+    // de que el iframe de YouTube se lo trague cuando tiene el foco.
+    window.addEventListener('keydown', e => {
+      if (e.keyCode === 10009 || e.keyCode === 461 || e.key === 'BrowserBack') {
+        e.preventDefault();
+        e.stopPropagation();
+        fireGoBack();
+      }
+    }, true);
     if (window.tizen) {
-      document.addEventListener('tizenhwkey', e => {
-        if (e.keyName === 'Back' || e.keyName === 'Return') {
+      window.addEventListener('tizenhwkey', e => {
+        if (e.keyName === 'Back' || e.keyName === 'back' || e.keyName === 'Return') {
           e.preventDefault();
           fireGoBack();
         }
-      });
+      }, true);
     }
 
     // --- TRAMPA UNIVERSAL PARA EL BOTÓN ATRÁS (HISTORY API) ---
