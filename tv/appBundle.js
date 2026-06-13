@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 13 Jun 2026 20:38:05 GMT
+ * Generated: Sat, 13 Jun 2026 21:20:38 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7871,7 +7871,9 @@ var APP_com_domain_app_ZappingStream = (function () {
       // Si hay imagen, asigarla para iniciar la carga
       if (this._imageUrl) {
         this.tag('Fallback').alpha = 1; // Aseguramos que el fallback se vea mientras carga
-        this.tag('Image').alpha = 1; // Restauramos la visibilidad por si se reusa la tarjeta
+
+        // TRUCO LIGHTNING: alpha debe ser > 0 para que el motor webGL NO la ignore y la descargue
+        this.tag('Image').alpha = 0.001;
 
         // OPTIMIZACIÓN: Pedir miniatura de menor peso (mqdefault 320x180) de YouTube
         let finalSrc = this._imageUrl.replace(/(maxresdefault|hqdefault|sddefault)\.jpg/i, 'mqdefault.jpg');
@@ -8056,10 +8058,35 @@ var APP_com_domain_app_ZappingStream = (function () {
             }
           }
         },
-        // Cuerpo: Contendrá las VideoCards dinámicamente
+        // Cuerpo: Pool estático interno de VideoCards (Evita instanciarlas en tiempo real)
         Body: {
           y: 75,
-          x: 20
+          x: 20,
+          Video_0: {
+            type: VideoCard,
+            alpha: 0,
+            x: -9999
+          },
+          Video_1: {
+            type: VideoCard,
+            alpha: 0,
+            x: -9999
+          },
+          Video_2: {
+            type: VideoCard,
+            alpha: 0,
+            x: -9999
+          },
+          Video_3: {
+            type: VideoCard,
+            alpha: 0,
+            x: -9999
+          },
+          Video_4: {
+            type: VideoCard,
+            alpha: 0,
+            x: -9999
+          }
         },
         // Textos para la versión expandida (On-Demand)
         ExpandedInfo: {
@@ -8091,9 +8118,6 @@ var APP_com_domain_app_ZappingStream = (function () {
         }
       };
     }
-    _construct() {
-      this._failedVideos = new Set();
-    }
 
     // Manejador del estado y propiedades
     set item(data) {
@@ -8109,11 +8133,12 @@ var APP_com_domain_app_ZappingStream = (function () {
         channel = _this$_item.channel,
         isExpanded = _this$_item.isExpanded,
         isLiveGroup = _this$_item.isLiveGroup;
+      const failedVideos = this._item.failedVideos || new Set();
 
       // Lógica de filtrado de videos fallidos y ordenamiento
       let activeVideos = [];
       if (isLiveGroup && channel.Actives) {
-        activeVideos = Object.values(channel.Actives).filter(v => !this._failedVideos.has(v.VideoId)).sort((a, b) => {
+        activeVideos = Object.values(channel.Actives).filter(v => !failedVideos.has(v.VideoId)).sort((a, b) => {
           if (a.IsPremiere && !b.IsPremiere) return 1;
           if (!a.IsPremiere && b.IsPremiere) return -1;
           const timeA = new Date(a.ActualStartTime || a.ScheduledStartTime || a.AddedAt || 0).getTime();
@@ -8155,15 +8180,24 @@ var APP_com_domain_app_ZappingStream = (function () {
       this.tag('Header.InfoBtn.Text').text.text = isExpanded ? 'Ocultar' : 'Info';
 
       // --- Render Body ---
-      const bodyItems = [];
       this.tag('ExpandedInfo').alpha = 0;
+
+      // Traemos el pool estático
+      const pool = [this.tag('Body.Video_0'), this.tag('Body.Video_1'), this.tag('Body.Video_2'), this.tag('Body.Video_3'), this.tag('Body.Video_4')];
+
+      // Ocultar todo por defecto antes de parchear
+      pool.forEach(vc => {
+        vc.alpha = 0;
+        vc.x = -9999;
+      });
       if (isExpanded) {
         // Modo Expandido
-        bodyItems.push({
-          type: VideoCard,
+        pool[0].patch({
           w: 460,
           h: 258,
           // Expandido
+          x: 0,
+          alpha: 1,
           item: {
             imageUrl: channel.ChannelBannerUrl ? "".concat(channel.ChannelBannerUrl, "=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj") : channel.ChannelImgUrl,
             altText: channel.ChannelName,
@@ -8176,10 +8210,11 @@ var APP_com_domain_app_ZappingStream = (function () {
       } else if (isLiveGroup && mainActive) {
         // Modo Vivo con videos activos
         const primaryImageUrl = mainActive.ThumbnailUrl ? getFreshImage(mainActive.ThumbnailUrl, channel.LastActivityAt) : channel.ChannelImgUrl;
-        bodyItems.push({
-          type: VideoCard,
+        pool[0].patch({
           w: 340,
           h: 191,
+          x: 0,
+          alpha: 1,
           item: {
             imageUrl: primaryImageUrl,
             altText: mainActive.Title || channel.ChannelName,
@@ -8190,28 +8225,31 @@ var APP_com_domain_app_ZappingStream = (function () {
           }
         });
         restoActivos.forEach((activo, idx) => {
-          bodyItems.push({
-            type: VideoCard,
-            w: 340,
-            h: 191,
-            x: 355 * (idx + 1),
-            // Lo ubicamos a la derecha (340 + 15 gap)
-            item: {
-              imageUrl: activo.ThumbnailUrl ? getFreshImage(activo.ThumbnailUrl, channel.LastActivityAt) : undefined,
-              altText: activo.Title,
-              fallbackText: channel.ChannelName,
-              isLive: true,
-              isPremiere: activo.IsPremiere,
-              onImageError: () => this._handleVideoError(activo.VideoId)
-            }
-          });
+          if (idx + 1 < pool.length) {
+            pool[idx + 1].patch({
+              w: 340,
+              h: 191,
+              x: 355 * (idx + 1),
+              // Lo ubicamos a la derecha (340 + 15 gap)
+              alpha: 1,
+              item: {
+                imageUrl: activo.ThumbnailUrl ? getFreshImage(activo.ThumbnailUrl, channel.LastActivityAt) : undefined,
+                altText: activo.Title,
+                fallbackText: channel.ChannelName,
+                isLive: true,
+                isPremiere: activo.IsPremiere,
+                onImageError: () => this._handleVideoError(activo.VideoId)
+              }
+            });
+          }
         });
       } else {
         // Modo On-Demand estándar
-        bodyItems.push({
-          type: VideoCard,
+        pool[0].patch({
           w: 340,
           h: 191,
+          x: 0,
+          alpha: 1,
           item: {
             imageUrl: channel.ChannelImgUrl,
             altText: channel.ChannelName,
@@ -8219,13 +8257,10 @@ var APP_com_domain_app_ZappingStream = (function () {
           }
         });
       }
-      this.tag('Body').children = bodyItems;
     }
-
-    // Equivalente a `setFailedVideos(prev => new Set(prev).add(id))`
     _handleVideoError(videoId) {
-      if (!this._failedVideos.has(videoId)) {
-        this._failedVideos.add(videoId);
+      if (this._item.onVideoError) {
+        this._item.onVideoError(videoId);
       }
     }
 
@@ -8595,41 +8630,53 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _construct() {
       this._index = 1; // 0 = InfoBtn (Sidebar), 1 a N = Eventos
-      this._events = [];
+      this._poolSize = 10;
+      this._eventsPool = null;
+    }
+    _createPool() {
+      if (!this._eventsPool) {
+        const items = [];
+        for (let i = 0; i < this._poolSize; i++) {
+          items.push({
+            type: EpgEvent,
+            alpha: 0,
+            x: -9999
+          });
+        }
+        this.tag('TrackBounds.Slider.Items').children = items;
+        this._eventsPool = this.tag('TrackBounds.Slider.Items').children;
+      }
     }
     set item(data) {
+      const isSameChannel = this._item && this._item.row.channel.ChannelName === data.row.channel.ChannelName;
       this._item = data;
-      const row = data.row,
-        navigateYouTube = data.navigateYouTube,
-        onVideoError = data.onVideoError,
-        toggleInfo = data.toggleInfo;
+      const row = data.row;
+        data.navigateYouTube;
+        data.onVideoError;
+        const toggleInfo = data.toggleInfo;
 
       // Configurar Sidebar
       this.tag('Sidebar.Logo').src = row.channel.ChannelImgUrl;
       this.tag('Sidebar.Name').text.text = row.channel.ChannelName;
       this._toggleInfo = () => toggleInfo(row.channel.ChannelName);
-
-      // Poblar Eventos
-      let currentX = 0;
-      const items = [];
-      row.events.forEach((ev, idx) => {
-        items.push({
-          type: EpgEvent,
-          x: currentX,
-          item: {
-            ev,
-            navigateYouTube,
-            onVideoError
-          }
-        });
-        currentX += 400; // 380 de ancho + 20 de gap
-      });
-      this.tag('TrackBounds.Slider.Items').children = items;
-      this._events = this.tag('TrackBounds.Slider.Items').children;
+      this._eventsData = row.events;
+      this._createPool();
 
       // Auto-focus al primer video en vivo si existe, sino al primero normal
       const liveIndex = row.events.findIndex(e => e.Live);
-      this._index = liveIndex !== -1 ? liveIndex + 1 : 1;
+      const defaultIndex = liveIndex !== -1 ? liveIndex + 1 : 1;
+      if (isSameChannel) {
+        if (this._index > row.events.length) {
+          this._index = row.events.length;
+        }
+      } else {
+        this._index = defaultIndex;
+      }
+      this._eventsPool.forEach(ev => {
+        ev._currentDataIdx = -1;
+        ev.alpha = 0;
+        ev.x = -9999;
+      });
       this._updateScroll(true); // true = sin animación inicial
     }
     _handleLeft() {
@@ -8642,8 +8689,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false; // Permite salir del EPG y volver al menú principal si hubiera uno
     }
     _handleRight() {
-      if (this._index < this._events.length) {
-        // length es N, index llega hasta N
+      if (this._eventsData && this._index < this._eventsData.length) {
         this._index++;
         this._updateScroll();
         this._refocus();
@@ -8678,16 +8724,42 @@ var APP_com_domain_app_ZappingStream = (function () {
         }
       }
 
-      // PERFORMANCE: Culling horizontal en EpgRow (desconectar de la GPU lo lejano)
-      const safeEvIndex = Math.max(0, this._index - 1);
-      this._events.forEach((ev, idx) => {
-        const distance = Math.abs(idx - safeEvIndex);
-        ev.visible = distance <= 5; // Mostrar solo 5 videos a la izquierda/derecha
+      // Virtualización Horizontal
+      if (!this._eventsData || this._eventsData.length === 0) return;
+      const evIndex = Math.max(0, this._index - 1);
+      const startIdx = Math.max(0, evIndex - 2);
+      const endIdx = Math.min(this._eventsData.length - 1, evIndex + 5);
+      this._eventsPool.forEach(ev => {
+        if (ev._currentDataIdx !== -1 && (ev._currentDataIdx < startIdx || ev._currentDataIdx > endIdx)) {
+          ev.alpha = 0;
+          ev._currentDataIdx = -1;
+          ev.x = -9999;
+        }
       });
+      for (let i = startIdx; i <= endIdx; i++) {
+        const data = this._eventsData[i];
+        const poolIndex = i % this._poolSize;
+        const evComponent = this._eventsPool[poolIndex];
+        if (evComponent._currentDataIdx !== i) {
+          evComponent.patch({
+            x: i * 400,
+            alpha: 1,
+            item: {
+              ev: data,
+              navigateYouTube: this._item.navigateYouTube,
+              onVideoError: this._item.onVideoError
+            }
+          });
+          evComponent._currentDataIdx = i;
+        }
+      }
     }
     _getFocused() {
       if (this._index === 0) return this; // La propia fila captura enter si estamos en el InfoBtn
-      return this._events[this._index - 1]; // Delegamos al EpgEvent
+      if (!this._eventsData || this._eventsData.length === 0) return this;
+      const evIndex = this._index - 1;
+      const poolIndex = evIndex % this._poolSize;
+      return this._eventsPool[poolIndex];
     }
     _handleEnter() {
       if (this._index === 0 && this._toggleInfo) {
@@ -8751,7 +8823,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._dayIndex = 0; // Indice del día seleccionado visualmente
       this._failedVideos = new Set();
       this._failedChannels = new Set();
-      this._rowsComponents = [];
+      this._rowsComponents = null; // Lo inicializamos null
 
       // Configuración de los 15 días (-7 a +7)
       this._today = new Date();
@@ -8875,29 +8947,30 @@ var APP_com_domain_app_ZappingStream = (function () {
         }
       });
       rowsData.sort((a, b) => a.channel.ChannelName.localeCompare(b.channel.ChannelName));
+      this._rowsData = rowsData; // Guardamos ref para virtualizar
 
       // Dibujar Filas
       this.tag('NoEventsMsg').alpha = rowsData.length === 0 ? 1 : 0;
-      let currentY = 0;
-      const rowItems = [];
-      rowsData.forEach(row => {
-        rowItems.push({
-          type: EpgRow,
-          y: currentY,
-          item: {
-            row,
-            navigateYouTube: this._navigateYouTube,
-            toggleInfo: this._toggleInfo,
-            onVideoError: videoId => {
-              this._failedVideos.add(videoId);
-              this._buildGrid(); // Re-renderizar
-            }
-          }
-        });
-        currentY += 460; // Altura de fila
+      if (!this._rowsComponents) {
+        this._poolSize = 8;
+        const rowItems = [];
+        for (let i = 0; i < this._poolSize; i++) {
+          rowItems.push({
+            type: EpgRow,
+            alpha: 0,
+            y: -9999
+          });
+        }
+        this.tag('EpgContainerBounds.Slider.Items').children = rowItems;
+        this._rowsComponents = this.tag('EpgContainerBounds.Slider.Items').children;
+      }
+
+      // Resetear pool para forzar render
+      this._rowsComponents.forEach(row => {
+        row._currentDataIdx = -1;
+        row.alpha = 0;
+        row.y = -9999;
       });
-      this.tag('EpgContainerBounds.Slider.Items').children = rowItems;
-      this._rowsComponents = this.tag('EpgContainerBounds.Slider.Items').children;
 
       // Actualizar visualmente la selección de días
       if (this._dayButtons) {
@@ -8907,8 +8980,8 @@ var APP_com_domain_app_ZappingStream = (function () {
       }
 
       // Ajustar el foco si nos quedamos sin filas por el filtrado
-      if (this._focusY > this._rowsComponents.length) {
-        this._focusY = this._rowsComponents.length;
+      if (this._focusY > this._rowsData.length) {
+        this._focusY = this._rowsData.length;
       }
       this._updateScrollVertical();
     }
@@ -8930,7 +9003,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false; // Escapa hacia AppHeader
     }
     _handleDown() {
-      if (this._focusY < this._rowsComponents.length) {
+      if (this._rowsData && this._focusY < this._rowsData.length) {
         this._focusY++;
         this._updateScrollVertical();
         this._refocus();
@@ -8965,9 +9038,8 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false;
     }
     _updateScrollVertical() {
+      const rowIndex = Math.max(0, this._focusY - 1);
       if (this._focusY > 0) {
-        const rowIndex = this._focusY - 1;
-        // Desplazar contenedor EPG hacia arriba cuando bajamos de la fila 2
         let targetY = 0;
         if (rowIndex > 1) {
           targetY = -((rowIndex - 1) * 460); // Altura de fila: 460px
@@ -8977,24 +9049,54 @@ var APP_com_domain_app_ZappingStream = (function () {
             y: targetY
           }
         });
-
-        // PERFORMANCE: Culling vertical (ocultar filas lejanas)
-        this._rowsComponents.forEach((row, idx) => {
-          const distance = Math.abs(idx - rowIndex);
-          row.visible = distance <= 3; // Mostrar solo 3 filas hacia arriba/abajo
-        });
       } else {
-        // Si el foco está en el selector de días, renderizamos las primeras filas
-        this._rowsComponents.forEach((row, idx) => {
-          row.visible = idx <= 3;
+        this.tag('EpgContainerBounds.Slider').patch({
+          smooth: {
+            y: 0
+          }
         });
+      }
+
+      // Virtualización vertical
+      if (!this._rowsData || this._rowsData.length === 0) return;
+      const startIdx = Math.max(0, rowIndex - 2);
+      const endIdx = Math.min(this._rowsData.length - 1, rowIndex + 4);
+      this._rowsComponents.forEach(row => {
+        if (row._currentDataIdx !== -1 && (row._currentDataIdx < startIdx || row._currentDataIdx > endIdx)) {
+          row.alpha = 0;
+          row._currentDataIdx = -1;
+          row.y = -9999;
+        }
+      });
+      for (let i = startIdx; i <= endIdx; i++) {
+        const data = this._rowsData[i];
+        const poolIndex = i % this._poolSize;
+        const row = this._rowsComponents[poolIndex];
+        if (row._currentDataIdx !== i) {
+          row.patch({
+            y: i * 460,
+            alpha: 1,
+            item: {
+              row: data,
+              navigateYouTube: this._navigateYouTube,
+              toggleInfo: this._toggleInfo,
+              onVideoError: videoId => {
+                this._failedVideos.add(videoId);
+                this._buildGrid();
+              }
+            }
+          });
+          row._currentDataIdx = i;
+        }
       }
     }
     _getFocused() {
       if (this._focusY === 0) {
         return this._dayButtons[this._dayIndex]; // Selector de Días
-      } else if (this._rowsComponents.length > 0) {
-        return this._rowsComponents[this._focusY - 1]; // EpgRow específico
+      } else if (this._rowsData && this._rowsData.length > 0) {
+        const dataIdx = this._focusY - 1;
+        const poolIndex = dataIdx % this._poolSize;
+        return this._rowsComponents[poolIndex];
       }
       return this;
     }
@@ -9027,7 +9129,18 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _init() {
       this._index = 0; // Índice de la tarjeta enfocada
-      this._cards = []; // Guardaremos referencias solo a los elementos enfocables (ChannelCard)
+      this._poolSize = 15; // Pool de tarjetas reciclables
+      const items = [];
+      for (let i = 0; i < this._poolSize; i++) {
+        items.push({
+          type: ChannelCard,
+          alpha: 0,
+          x: -9999
+        });
+      }
+      this.tag('Slider.Items').children = items;
+      this._cardsPool = this.tag('Slider.Items').children;
+      this._failedVideos = new Set();
     }
 
     // Setter que reemplaza los "props" de React
@@ -9046,42 +9159,65 @@ var APP_com_domain_app_ZappingStream = (function () {
       }
       this.alpha = 1;
       this.tag('Title').text.text = title;
-      let currentX = 0;
-      const items = [];
-      const GAP = 150; // Espaciado muy generoso entre tarjetas
+      this._originalChannels = channels;
+      this._expandedChannels = expandedChannels;
+      this._isLiveGroup = title === 'AHORA';
+      this._callbacks = {
+        toggleInfo,
+        abrirCanal,
+        abrirCanalOnStreams,
+        abrirCanalOnDemand,
+        navigateYouTube,
+        onVideoError: videoId => this._handleVideoError(videoId)
+      };
 
-      const isExpanded = name => expandedChannels && expandedChannels.has(name);
+      // Limpiar el pool para forzar re-renderizado
+      this._cardsPool.forEach(card => {
+        card._currentDataIdx = -1;
+        card.alpha = 0;
+        card.x = -9999;
+      });
+      this._buildData();
+      this._index = 0;
+      this._updateScroll(true); // Posicionamiento inicial instantáneo
+    }
+    _handleVideoError(videoId) {
+      if (!this._failedVideos.has(videoId)) {
+        this._failedVideos.add(videoId);
+        this._buildData();
+      }
+    }
+    _buildData() {
+      let currentX = 0;
+      const GAP = 150;
       const getCardWidth = channel => {
-        const activeCount = Object.keys(channel.Actives || {}).length;
-        if (title === 'AHORA' && activeCount > 1) {
+        const actives = Object.values(channel.Actives || {}).filter(v => !this._failedVideos.has(v.VideoId));
+        const activeCount = actives.length;
+        if (this._isLiveGroup && activeCount > 1) {
           return 380 + (activeCount - 1) * 355;
         }
         return 380;
       };
-      channels.forEach(channel => {
-        const cardW = getCardWidth(channel);
-        items.push({
-          type: ChannelCard,
-          ref: "Card_".concat(channel.ChannelName),
+      this._channelData = this._originalChannels.map((channel, i) => {
+        const w = getCardWidth(channel);
+        const info = {
+          channel,
           x: currentX,
-          w: cardW,
-          item: {
-            channel,
-            isExpanded: isExpanded(channel.ChannelName),
-            isLiveGroup: title === 'AHORA',
-            // true si es categoría de Live
-            toggleInfo,
-            abrirCanal,
-            abrirCanalOnStreams,
-            abrirCanalOnDemand,
-            navigateYouTube
-          }
-        });
-        currentX += cardW + GAP;
+          w,
+          index: i
+        };
+        currentX += w + GAP;
+        return info;
       });
-      this.tag('Slider.Items').children = items;
-      this._cards = this.tag('Slider.Items').children;
-      this._updateScroll(); // Forzar el culling al inicializar la fila
+      if (this._channelData.length > 0 && this._index >= this._channelData.length) {
+        this._index = this._channelData.length - 1;
+      }
+
+      // Forzar al pool a actualizar anchos y coordenadas
+      this._cardsPool.forEach(card => {
+        card._currentDataIdx = -1;
+      });
+      this._updateScroll();
     }
 
     // --- Control de Foco y Navegación Horizontal ---
@@ -9095,7 +9231,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false;
     }
     _handleRight() {
-      if (this._index < this._cards.length - 1) {
+      if (this._channelData && this._index < this._channelData.length - 1) {
         this._index++;
         this._updateScroll();
         this._refocus();
@@ -9104,24 +9240,57 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false;
     }
     _updateScroll() {
-      const currentCard = this._cards[this._index];
-      if (currentCard) {
-        let targetX = 60 - currentCard.x;
-        this.tag('Slider').patch({
-          smooth: {
-            x: targetX
-          }
-        });
+      let instant = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      if (!this._channelData || this._channelData.length === 0) return;
+      const targetChannel = this._channelData[this._index];
+      if (targetChannel) {
+        let targetX = 60 - targetChannel.x;
+        if (instant) {
+          this.tag('Slider').x = targetX;
+        } else {
+          this.tag('Slider').patch({
+            smooth: {
+              x: targetX
+            }
+          });
+        }
       }
 
-      // PERFORMANCE: Culling horizontal (desactivar renderizado fuera de pantalla)
-      this._cards.forEach((card, idx) => {
-        const distance = Math.abs(idx - this._index);
-        card.visible = distance <= 5;
+      // Ventana de Virtualización
+      const startIdx = Math.max(0, this._index - 3);
+      const endIdx = Math.min(this._channelData.length - 1, this._index + 7);
+      this._cardsPool.forEach(card => {
+        if (card._currentDataIdx !== -1 && (card._currentDataIdx < startIdx || card._currentDataIdx > endIdx)) {
+          card.alpha = 0;
+          card._currentDataIdx = -1;
+          card.x = -9999;
+        }
       });
+      for (let i = startIdx; i <= endIdx; i++) {
+        const data = this._channelData[i];
+        const poolIndex = i % this._poolSize;
+        const card = this._cardsPool[poolIndex];
+        if (card._currentDataIdx !== i) {
+          card.patch({
+            x: data.x,
+            w: data.w,
+            alpha: 1,
+            item: {
+              channel: data.channel,
+              isExpanded: this._expandedChannels && this._expandedChannels.has(data.channel.ChannelName),
+              isLiveGroup: this._isLiveGroup,
+              failedVideos: this._failedVideos,
+              ...this._callbacks
+            }
+          });
+          card._currentDataIdx = i;
+        }
+      }
     }
     _getFocused() {
-      return this._cards[this._index];
+      if (!this._channelData || this._channelData.length === 0) return this;
+      const poolIndex = this._index % this._poolSize;
+      return this._cardsPool[poolIndex];
     }
   }
 
