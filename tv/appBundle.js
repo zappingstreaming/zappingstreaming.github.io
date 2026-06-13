@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 13 Jun 2026 19:06:32 GMT
+ * Generated: Sat, 13 Jun 2026 19:19:35 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7594,7 +7594,8 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (this._iframe || !this._videoId) return;
       this._iframe = document.createElement('iframe');
       this._iframe.className = 'tv-iframe';
-      this._iframe.src = "https://www.youtube-nocookie.com/embed/".concat(this._videoId, "?autoplay=1&fs=1&modestbranding=1&rel=0");
+      // Le inyectamos el origin dinámicamente para prevenir bloqueos de seguridad adicionales
+      this._iframe.src = "https://www.youtube-nocookie.com/embed/".concat(this._videoId, "?autoplay=1&fs=1&modestbranding=1&rel=0&origin=").concat(window.location.origin);
       this._iframe.frameBorder = '0';
       this._iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
       this._iframe.allowFullscreen = true;
@@ -7608,11 +7609,6 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._iframe.style.zIndex = '0';
       this._iframe.style.border = 'none';
       document.body.appendChild(this._iframe);
-
-      // Permitimos que el iframe reciba el foco para poder adelantar/atrasar con el control
-      setTimeout(() => {
-        if (this._iframe) this._iframe.focus();
-      }, 500);
     }
     _destroyIframe() {
       if (this._iframe && this._iframe.parentNode) {
@@ -9483,7 +9479,8 @@ var APP_com_domain_app_ZappingStream = (function () {
         Overlays: {
           Player: {
             type: TVPlayer,
-            alpha: 0 // Oculto hasta que se seleccione un video
+            alpha: 0,
+            visible: false // Usamos visible para que dispare _inactive() y destruya el Iframe
           },
           Info: {
             type: InfoModal,
@@ -9563,6 +9560,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       this.tag('Overlays.Player').onClose = () => {
         this._focusedSection = 'content';
         this.tag('Overlays.Player').alpha = 0;
+        this.tag('Overlays.Player').visible = false;
         this.tag('Main').alpha = 1; // Restauramos la interfaz principal
         this.tag('Background').alpha = 1;
         this._updateUI();
@@ -9819,6 +9817,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         this._focusedSection = 'player';
         this.tag('Overlays.Player').videoId = match[1];
         this.tag('Overlays.Player').alpha = 1;
+        this.tag('Overlays.Player').visible = true;
         this.tag('Main').alpha = 0; // Ocultamos la app detrás del reproductor
         this.tag('Background').alpha = 0;
         this._refocus();
