@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 13 Jun 2026 19:48:49 GMT
+ * Generated: Sat, 13 Jun 2026 20:38:05 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -6805,19 +6805,6 @@ var APP_com_domain_app_ZappingStream = (function () {
   };
 
   // ============================================
-  // Espaciado y tamaños comunes
-  // ============================================
-  const SPACING = {
-    GAP_SMALL: 8,
-    GAP_MEDIUM: 12,
-    GAP_LARGE: 15,
-    GAP_XLARGE: 20,
-    PADDING_SMALL: 8,
-    PADDING_MEDIUM: 10,
-    PADDING_LARGE: 20
-  };
-
-  // ============================================
   // Tamaños de componentes
   // ============================================
   const COMPONENT_SIZE = {
@@ -7886,12 +7873,14 @@ var APP_com_domain_app_ZappingStream = (function () {
         this.tag('Fallback').alpha = 1; // Aseguramos que el fallback se vea mientras carga
         this.tag('Image').alpha = 1; // Restauramos la visibilidad por si se reusa la tarjeta
 
+        // OPTIMIZACIÓN: Pedir miniatura de menor peso (mqdefault 320x180) de YouTube
+        let finalSrc = this._imageUrl.replace(/(maxresdefault|hqdefault|sddefault)\.jpg/i, 'mqdefault.jpg');
+
         // --- SOLUCIÓN DEFINITIVA A CORS EN WEBGL ---
         // WebGL es estricto: si YouTube no envía la cabecera CORS, la textura colapsa.
         // Pasamos las imágenes de Google/YouTube por un Image CDN (wsrv.nl) que fuerza el CORS.
-        let finalSrc = this._imageUrl;
         if (finalSrc.includes('ytimg.com') || finalSrc.includes('youtube.com') || finalSrc.includes('ggpht.com')) {
-          finalSrc = "https://wsrv.nl/?url=".concat(encodeURIComponent(finalSrc));
+          finalSrc = "https://wsrv.nl/?url=".concat(encodeURIComponent(finalSrc), "&w=400&output=webp");
         }
         this.tag('Image').src = finalSrc;
       } else {
@@ -8001,8 +7990,8 @@ var APP_com_domain_app_ZappingStream = (function () {
   class ChannelCard extends Lightning$1.Component {
     static _template() {
       return {
-        w: 320,
-        h: 300,
+        w: 380,
+        h: 320,
         rect: true,
         color: 0xff1a1a1a,
         // bg-dark
@@ -8017,7 +8006,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         Header: {
           y: 20,
           x: 20,
-          w: 280,
+          w: 340,
           Logo: {
             w: 32,
             h: 32,
@@ -8033,19 +8022,19 @@ var APP_com_domain_app_ZappingStream = (function () {
             y: 4,
             text: {
               text: '',
-              fontSize: 22,
+              fontSize: 26,
               fontFace: 'Regular',
               textColor: 0xffffffff,
-              wordWrapWidth: 160,
+              wordWrapWidth: 200,
               maxLines: 1,
               textOverflow: 'ellipsis'
             }
           },
           InfoBtn: {
-            x: 220,
+            x: 260,
             y: 0,
-            w: 60,
-            h: 32,
+            w: 80,
+            h: 36,
             rect: true,
             color: 0x00000000,
             shader: {
@@ -8056,11 +8045,11 @@ var APP_com_domain_app_ZappingStream = (function () {
             },
             Text: {
               mount: 0.5,
-              x: 30,
-              y: 17,
+              x: 40,
+              y: 19,
               text: {
                 text: 'Info',
-                fontSize: 16,
+                fontSize: 20,
                 fontFace: 'Regular',
                 textColor: 0xff888888
               }
@@ -8069,34 +8058,34 @@ var APP_com_domain_app_ZappingStream = (function () {
         },
         // Cuerpo: Contendrá las VideoCards dinámicamente
         Body: {
-          y: 65,
+          y: 75,
           x: 20
         },
         // Textos para la versión expandida (On-Demand)
         ExpandedInfo: {
           alpha: 0,
           // Oculto por defecto
-          y: 65,
+          y: 75,
           x: 20,
           City: {
-            y: 190,
+            y: 280,
             text: {
               text: '',
-              fontSize: 18,
+              fontSize: 22,
               textColor: 0xff38b6ff,
               fontFace: 'Bold'
             }
           },
           Desc: {
-            y: 225,
+            y: 320,
             text: {
               text: '',
-              fontSize: 18,
+              fontSize: 20,
               textColor: 0xffdddddd,
               fontFace: 'Regular',
-              wordWrapWidth: 410,
+              wordWrapWidth: 460,
               maxLines: 10,
-              lineHeight: 26
+              lineHeight: 30
             }
           }
         }
@@ -8132,22 +8121,23 @@ var APP_com_domain_app_ZappingStream = (function () {
           return timeB - timeA;
         });
       }
+      this._activeVideos = activeVideos;
       const mainActive = activeVideos.length > 0 ? activeVideos[0] : null;
       const restoActivos = activeVideos.slice(1);
 
       // Cálculo de dimensiones del componente contenedor
-      let targetWidth = 320;
-      let targetHeight = 300;
+      let targetWidth = 380;
+      let targetHeight = 320;
       if (isExpanded) {
-        targetWidth = 450;
-        targetHeight = 650; // Más alto para acomodar texto expandido
+        targetWidth = 500;
+        targetHeight = 720; // Más alto para acomodar texto expandido
       } else if (isLiveGroup && restoActivos.length > 0) {
-        targetWidth = 320 + restoActivos.length * 295; // 280 de width de VideoCard + 15 de gap
+        targetWidth = 380 + restoActivos.length * 355; // 340 de width de VideoCard + 15 de gap
       }
       this.w = targetWidth;
       this.h = targetHeight;
       this.tag('Header').w = targetWidth - 40;
-      this.tag('Header.InfoBtn').x = targetWidth - 40 - 60;
+      this.tag('Header.InfoBtn').x = targetWidth - 40 - 80;
 
       // --- Render Header ---
       const showMiniLogo = channel.ChannelImgUrl && (isExpanded || isLiveGroup && mainActive);
@@ -8159,7 +8149,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         x: showMiniLogo ? 45 : 0,
         text: {
           text: channel.ChannelName + ' ',
-          wordWrapWidth: targetWidth - 40 - 60 - (showMiniLogo ? 55 : 10)
+          wordWrapWidth: targetWidth - 40 - 80 - (showMiniLogo ? 55 : 10)
         }
       });
       this.tag('Header.InfoBtn.Text').text.text = isExpanded ? 'Ocultar' : 'Info';
@@ -8171,8 +8161,8 @@ var APP_com_domain_app_ZappingStream = (function () {
         // Modo Expandido
         bodyItems.push({
           type: VideoCard,
-          w: 410,
-          h: 256,
+          w: 460,
+          h: 258,
           // Expandido
           item: {
             imageUrl: channel.ChannelBannerUrl ? "".concat(channel.ChannelBannerUrl, "=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj") : channel.ChannelImgUrl,
@@ -8188,6 +8178,8 @@ var APP_com_domain_app_ZappingStream = (function () {
         const primaryImageUrl = mainActive.ThumbnailUrl ? getFreshImage(mainActive.ThumbnailUrl, channel.LastActivityAt) : channel.ChannelImgUrl;
         bodyItems.push({
           type: VideoCard,
+          w: 340,
+          h: 191,
           item: {
             imageUrl: primaryImageUrl,
             altText: mainActive.Title || channel.ChannelName,
@@ -8200,8 +8192,10 @@ var APP_com_domain_app_ZappingStream = (function () {
         restoActivos.forEach((activo, idx) => {
           bodyItems.push({
             type: VideoCard,
-            x: 295 * (idx + 1),
-            // Lo ubicamos a la derecha (280 + 15 gap)
+            w: 340,
+            h: 191,
+            x: 355 * (idx + 1),
+            // Lo ubicamos a la derecha (340 + 15 gap)
             item: {
               imageUrl: activo.ThumbnailUrl ? getFreshImage(activo.ThumbnailUrl, channel.LastActivityAt) : undefined,
               altText: activo.Title,
@@ -8216,6 +8210,8 @@ var APP_com_domain_app_ZappingStream = (function () {
         // Modo On-Demand estándar
         bodyItems.push({
           type: VideoCard,
+          w: 340,
+          h: 191,
           item: {
             imageUrl: channel.ChannelImgUrl,
             altText: channel.ChannelName,
@@ -8279,7 +8275,18 @@ var APP_com_domain_app_ZappingStream = (function () {
         abrirCanal = _this$_item2.abrirCanal,
         abrirCanalOnStreams = _this$_item2.abrirCanalOnStreams;
       if (!isExpanded) {
-        if (isLiveGroup && abrirCanal) abrirCanal(channel);else if (abrirCanalOnStreams) abrirCanalOnStreams(channel);
+        if (isLiveGroup) {
+          if (this._activeVideos && this._activeVideos.length > 1) {
+            this.fireAncestors('$onSelectStream', {
+              channel,
+              activeVideos: this._activeVideos
+            });
+          } else if (abrirCanal) {
+            abrirCanal(channel);
+          }
+        } else if (abrirCanalOnStreams) {
+          abrirCanalOnStreams(channel);
+        }
       }
     }
   }
@@ -8290,8 +8297,8 @@ var APP_com_domain_app_ZappingStream = (function () {
   class DayButton extends Lightning$1.Component {
     static _template() {
       return {
-        w: COMPONENT_SIZE.BUTTON_HEIGHT + 110,
-        h: COMPONENT_SIZE.BUTTON_HEIGHT,
+        w: 200,
+        h: 60,
         rect: true,
         color: COLORS.BG_PANEL,
         shader: {
@@ -8300,11 +8307,11 @@ var APP_com_domain_app_ZappingStream = (function () {
         },
         Label: {
           mount: 0.5,
-          x: (COMPONENT_SIZE.BUTTON_HEIGHT + 110) / 2,
-          y: COMPONENT_SIZE.BUTTON_HEIGHT / 2,
+          x: 100,
+          y: 32,
           text: {
             text: '',
-            fontSize: TYPOGRAPHY.FONT_SIZE_LARGE,
+            fontSize: 24,
             fontFace: TYPOGRAPHY.FONT_FAMILY,
             textColor: COLORS.TEXT_WHITE
           }
@@ -8376,8 +8383,8 @@ var APP_com_domain_app_ZappingStream = (function () {
   class EpgEvent extends Lightning$1.Component {
     static _template() {
       return {
-        w: COMPONENT_SIZE.CARD_WIDTH,
-        h: COMPONENT_SIZE.CARD_HEIGHT,
+        w: 380,
+        h: 400,
         rect: true,
         color: COLORS.BG_DARK,
         shader: {
@@ -8385,9 +8392,9 @@ var APP_com_domain_app_ZappingStream = (function () {
           radius: BORDER_RADIUS.LARGE
         },
         TimeBadge: {
-          y: SPACING.PADDING_SMALL,
-          x: SPACING.PADDING_SMALL,
-          h: 28,
+          y: 12,
+          x: 12,
+          h: 36,
           rect: true,
           color: COLORS.BG_PANEL,
           shader: {
@@ -8395,35 +8402,36 @@ var APP_com_domain_app_ZappingStream = (function () {
             radius: BORDER_RADIUS.MEDIUM
           },
           Label: {
-            x: SPACING.PADDING_SMALL * 1.5,
+            x: 12,
             mountY: 0.5,
-            y: 16,
+            y: 20,
             text: {
               text: '',
-              fontSize: TYPOGRAPHY.FONT_SIZE_SMALL,
+              fontSize: 20,
               fontFace: TYPOGRAPHY.FONT_FAMILY,
               textColor: COLORS.TEXT_WHITE
             }
           }
         },
         VideoWrapper: {
-          y: 35,
-          w: COMPONENT_SIZE.CARD_WIDTH,
-          h: 120,
+          y: 60,
+          w: 380,
+          h: 214,
           type: VideoCard
         },
         Title: {
-          y: 160,
-          x: SPACING.PADDING_SMALL,
-          w: COMPONENT_SIZE.CARD_WIDTH - SPACING.PADDING_SMALL * 2,
+          y: 290,
+          x: 16,
+          w: 348,
           text: {
             text: '',
-            fontSize: TYPOGRAPHY.FONT_SIZE_NORMAL,
+            fontSize: 24,
             fontFace: TYPOGRAPHY.FONT_FAMILY,
             textColor: COLORS.TEXT_WHITE,
-            maxLines: 2,
+            maxLines: 3,
             textOverflow: 'ellipsis',
-            wordWrapWidth: COMPONENT_SIZE.CARD_WIDTH - SPACING.PADDING_SMALL * 2
+            wordWrapWidth: 348,
+            lineHeight: 30
           }
         }
       };
@@ -8457,7 +8465,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       this.tag('TimeBadge.Label').text.textColor = isNotNow ? COLORS.TEXT_GRAY : COLORS.TEXT_WHITE;
 
       // Ajustar dinámicamente el ancho del badge en base al texto
-      this.tag('TimeBadge').w = Math.max(timeText.length * 8 + 24, 60);
+      this.tag('TimeBadge').w = Math.max(timeText.length * 12 + 30, 80);
       const rawImageUrl = ev.ThumbnailUrl || ev.channel.ChannelImgUrl;
       this.tag('VideoWrapper').item = {
         imageUrl: rawImageUrl ? getFreshImage(rawImageUrl, ev.channel.LastActivityAt) : undefined,
@@ -8514,16 +8522,16 @@ var APP_com_domain_app_ZappingStream = (function () {
     static _template() {
       return {
         w: 1920,
-        h: 280,
+        h: 460,
         // Altura fija de la fila
         Sidebar: {
-          w: 140,
-          h: 260,
+          w: 180,
+          h: 440,
           rect: true,
           color: COLORS.BG_BLACK,
           Logo: {
-            x: 30,
-            y: 15,
+            x: 50,
+            y: 30,
             w: COMPONENT_SIZE.LOGO_MEDIUM,
             h: COMPONENT_SIZE.LOGO_MEDIUM,
             shader: {
@@ -8533,23 +8541,24 @@ var APP_com_domain_app_ZappingStream = (function () {
           },
           Name: {
             x: 10,
-            y: 105,
-            w: 120,
+            y: 130,
+            w: 160,
             text: {
               text: '',
-              fontSize: TYPOGRAPHY.FONT_SIZE_SMALL,
+              fontSize: 24,
               fontFace: TYPOGRAPHY.FONT_FAMILY,
               textColor: COLORS.ACCENT_BLUE,
-              wordWrapWidth: 120,
+              wordWrapWidth: 160,
               maxLines: 2,
-              textAlign: 'center'
+              textAlign: 'center',
+              lineHeight: 32
             }
           },
           InfoBtn: {
             x: 30,
-            y: 180,
-            w: 80,
-            h: COMPONENT_SIZE.BUTTON_HEIGHT_SMALL,
+            y: 280,
+            w: 120,
+            h: 54,
             rect: true,
             color: COLORS.BG_PANEL,
             shader: {
@@ -8558,11 +8567,11 @@ var APP_com_domain_app_ZappingStream = (function () {
             },
             Label: {
               mount: 0.5,
-              x: 40,
-              y: COMPONENT_SIZE.BUTTON_HEIGHT_SMALL / 2,
+              x: 60,
+              y: 29,
               text: {
                 text: 'Info',
-                fontSize: TYPOGRAPHY.FONT_SIZE_SMALL,
+                fontSize: 22,
                 fontFace: TYPOGRAPHY.FONT_FAMILY,
                 textColor: COLORS.TEXT_WHITE
               }
@@ -8571,10 +8580,10 @@ var APP_com_domain_app_ZappingStream = (function () {
         },
         // Slider horizontal de videos
         TrackBounds: {
-          x: 160,
+          x: 200,
           y: -10,
-          w: 1760,
-          h: 300,
+          w: 1720,
+          h: 480,
           clipping: true,
           Slider: {
             x: 0,
@@ -8613,7 +8622,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             onVideoError
           }
         });
-        currentX += 280; // 240 de ancho + 40 de gap
+        currentX += 400; // 380 de ancho + 20 de gap
       });
       this.tag('TrackBounds.Slider.Items').children = items;
       this._events = this.tag('TrackBounds.Slider.Items').children;
@@ -8656,7 +8665,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         const evIndex = this._index - 1;
         let targetX = 0;
         if (evIndex > 0) {
-          targetX = -(evIndex * 280) + 60; // Desplazar exacto dejando 60px de margen respecto a la columna
+          targetX = -(evIndex * 400) + 60; // Desplazar exacto dejando 60px de margen respecto a la columna
         }
         if (instant) {
           this.tag('TrackBounds.Slider').x = targetX;
@@ -8668,6 +8677,13 @@ var APP_com_domain_app_ZappingStream = (function () {
           });
         }
       }
+
+      // PERFORMANCE: Culling horizontal en EpgRow (desconectar de la GPU lo lejano)
+      const safeEvIndex = Math.max(0, this._index - 1);
+      this._events.forEach((ev, idx) => {
+        const distance = Math.abs(idx - safeEvIndex);
+        ev.visible = distance <= 5; // Mostrar solo 5 videos a la izquierda/derecha
+      });
     }
     _getFocused() {
       if (this._index === 0) return this; // La propia fila captura enter si estamos en el InfoBtn
@@ -8694,7 +8710,7 @@ var APP_com_domain_app_ZappingStream = (function () {
           x: 60,
           y: 20,
           w: 1800,
-          h: 70,
+          h: 80,
           clipping: true,
           Slider: {
             x: 0,
@@ -8710,7 +8726,7 @@ var APP_com_domain_app_ZappingStream = (function () {
           y: 540,
           text: {
             text: 'No hay transmisiones programadas para este día.',
-            fontSize: TYPOGRAPHY.FONT_SIZE_XLARGE,
+            fontSize: 36,
             fontFace: TYPOGRAPHY.FONT_FAMILY,
             textColor: COLORS.TEXT_GRAY
           }
@@ -8718,9 +8734,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         // Contenedor Vertical de Canales
         EpgContainerBounds: {
           x: 0,
-          y: 100,
+          y: 110,
           w: 1920,
-          h: 830,
+          h: 820,
           clipping: true,
           Slider: {
             x: 0,
@@ -8772,7 +8788,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             label
           }
         });
-        currentX += 172; // 160 de ancho + 12 de gap (estilos CSS .days-rail gap: 12px)
+        currentX += 212; // 200 de ancho + 12 de gap
       });
       this.tag('DaysRailBounds.Slider.Items').children = daysItems;
       this._dayButtons = this.tag('DaysRailBounds.Slider.Items').children;
@@ -8878,7 +8894,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             }
           }
         });
-        currentY += 280; // Altura de fila
+        currentY += 460; // Altura de fila
       });
       this.tag('EpgContainerBounds.Slider.Items').children = rowItems;
       this._rowsComponents = this.tag('EpgContainerBounds.Slider.Items').children;
@@ -8927,9 +8943,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         this._dayIndex--;
         this.tag('DaysRailBounds.Slider').patch({
           smooth: {
-            x: -(this._dayIndex * 172) + 500
+            x: -(this._dayIndex * 212) + 500
           }
-        }); // Ajustado al nuevo gap de 12px
+        });
         this._refocus();
         return true;
       }
@@ -8940,9 +8956,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         this._dayIndex++;
         this.tag('DaysRailBounds.Slider').patch({
           smooth: {
-            x: -(this._dayIndex * 172) + 500
+            x: -(this._dayIndex * 212) + 500
           }
-        }); // Ajustado al nuevo gap de 12px
+        });
         this._refocus();
         return true;
       }
@@ -8954,12 +8970,23 @@ var APP_com_domain_app_ZappingStream = (function () {
         // Desplazar contenedor EPG hacia arriba cuando bajamos de la fila 2
         let targetY = 0;
         if (rowIndex > 1) {
-          targetY = -((rowIndex - 1) * 280); // Altura de fila: 280px
+          targetY = -((rowIndex - 1) * 460); // Altura de fila: 460px
         }
         this.tag('EpgContainerBounds.Slider').patch({
           smooth: {
             y: targetY
           }
+        });
+
+        // PERFORMANCE: Culling vertical (ocultar filas lejanas)
+        this._rowsComponents.forEach((row, idx) => {
+          const distance = Math.abs(idx - rowIndex);
+          row.visible = distance <= 3; // Mostrar solo 3 filas hacia arriba/abajo
+        });
+      } else {
+        // Si el foco está en el selector de días, renderizamos las primeras filas
+        this._rowsComponents.forEach((row, idx) => {
+          row.visible = idx <= 3;
         });
       }
     }
@@ -9026,10 +9053,10 @@ var APP_com_domain_app_ZappingStream = (function () {
       const isExpanded = name => expandedChannels && expandedChannels.has(name);
       const getCardWidth = channel => {
         const activeCount = Object.keys(channel.Actives || {}).length;
-        if (activeCount > 1) {
-          return COMPONENT_SIZE.CARD_WIDTH + (activeCount - 1) * 100;
+        if (title === 'AHORA' && activeCount > 1) {
+          return 380 + (activeCount - 1) * 355;
         }
-        return COMPONENT_SIZE.CARD_WIDTH;
+        return 380;
       };
       channels.forEach(channel => {
         const cardW = getCardWidth(channel);
@@ -9054,6 +9081,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       });
       this.tag('Slider.Items').children = items;
       this._cards = this.tag('Slider.Items').children;
+      this._updateScroll(); // Forzar el culling al inicializar la fila
     }
 
     // --- Control de Foco y Navegación Horizontal ---
@@ -9085,6 +9113,12 @@ var APP_com_domain_app_ZappingStream = (function () {
           }
         });
       }
+
+      // PERFORMANCE: Culling horizontal (desactivar renderizado fuera de pantalla)
+      this._cards.forEach((card, idx) => {
+        const distance = Math.abs(idx - this._index);
+        card.visible = distance <= 5;
+      });
     }
     _getFocused() {
       return this._cards[this._index];
@@ -9359,7 +9393,10 @@ var APP_com_domain_app_ZappingStream = (function () {
           text: {
             text: '',
             fontSize: TYPOGRAPHY.FONT_SIZE_LARGE,
-            textColor: COLORS.TEXT_WHITE
+            textColor: COLORS.TEXT_WHITE,
+            wordWrapWidth: 540,
+            maxLines: 1,
+            textOverflow: 'ellipsis'
           }
         }
       };
@@ -9502,7 +9539,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     $onOptionSelected(value) {
       if (this._onSelect) this._onSelect(value);
-      this.fireAncestors('$closeSelectModal');
     }
   }
 
@@ -9632,7 +9668,7 @@ var APP_com_domain_app_ZappingStream = (function () {
 
       // Configurar Modales
       this.tag('Overlays.Info').onClose = () => {
-        this._focusedSection = 'footer';
+        this._focusedSection = this._previousFocus || 'footer';
         this.tag('Overlays.Info').patch({
           smooth: {
             alpha: 0
@@ -9728,6 +9764,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             channels: this._channels,
             navigateYouTube: url => this._openPlayer(url),
             toggleInfo: channelName => {
+              this._previousFocus = this._focusedSection;
               this._focusedSection = 'modal';
               this.tag('Overlays.Info').alpha = 1;
             },
@@ -9750,6 +9787,7 @@ var APP_com_domain_app_ZappingStream = (function () {
           const callbacks = {
             navigateYouTube: url => this._openPlayer(url),
             toggleInfo: channelName => {
+              this._previousFocus = this._focusedSection;
               this._focusedSection = 'modal';
               this.tag('Overlays.Info').alpha = 1;
             },
@@ -9803,6 +9841,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             this._refocus();
           },
           onSearchClick: () => {
+            this._previousFocus = this._focusedSection;
             this._focusedSection = 'search';
             this.tag('Overlays.Search').alpha = 1;
             this.tag('Overlays.Search').config = {
@@ -9812,6 +9851,7 @@ var APP_com_domain_app_ZappingStream = (function () {
             this._refocus();
           },
           onProvinceClick: () => {
+            this._previousFocus = this._focusedSection;
             this._focusedSection = 'select';
             this.tag('Overlays.Select').alpha = 1;
             this.tag('Overlays.Select').config = {
@@ -9826,12 +9866,14 @@ var APP_com_domain_app_ZappingStream = (function () {
               onSelect: prov => {
                 this._selectedProvince = prov;
                 this._applyFilters();
+                this.$closeSelectModal();
               }
             };
             this._refocus();
           },
           onCityClick: () => {
             if (!this._citiesList || this._citiesList.length === 0) return;
+            this._previousFocus = this._focusedSection;
             this._focusedSection = 'select';
             this.tag('Overlays.Select').alpha = 1;
             this.tag('Overlays.Select').config = {
@@ -9846,6 +9888,7 @@ var APP_com_domain_app_ZappingStream = (function () {
               onSelect: city => {
                 this._selectedCity = city;
                 this._applyFilters();
+                this.$closeSelectModal();
               }
             };
             this._refocus();
@@ -9858,6 +9901,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         isRefreshing: this._isLoadingChannels,
         onRefresh: () => this._fetchChannels(),
         onShowInfo: () => {
+          this._previousFocus = this._focusedSection;
           this._focusedSection = 'modal';
           this.tag('Overlays.Info').alpha = 1; // Mostramos el modal
           this._refocus();
@@ -9890,7 +9934,9 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (videoId) {
         this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId));
       } else {
-        console.warn("No se encontró VideoId en vivo para reproducir:", channel.ChannelName);
+        // OFFLINE: Redirigimos a la pestaña de transmisiones del canal de YouTube usando su ID exacto
+        const targetUrl = channel.ChannelLiveUrl.replace("/live", "/streams");
+        this._openPlayer(targetUrl);
       }
     }
 
@@ -9905,6 +9951,9 @@ var APP_com_domain_app_ZappingStream = (function () {
         this.tag('Main').alpha = 0; // Ocultamos la app detrás del reproductor
         this.tag('Background').alpha = 0;
         this._refocus();
+      } else {
+        // Al no ser un video directo, forzamos abrir una pestaña nueva o la app nativa de YouTube
+        window.open(url, '_blank');
       }
     }
 
@@ -9916,10 +9965,31 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._refocus();
     }
 
+    // --- Manejador para seleccionar Stream de un Canal con múltiples activos ---
+    $onSelectStream(data) {
+      const channel = data.channel,
+        activeVideos = data.activeVideos;
+      this._previousFocus = this._focusedSection;
+      this._focusedSection = 'select';
+      this.tag('Overlays.Select').alpha = 1;
+      this.tag('Overlays.Select').config = {
+        title: 'Transmisiones en curso',
+        options: activeVideos.map(v => ({
+          label: (v.IsPremiere ? '⭐ ' : '🔴 ') + (v.Title || channel.ChannelName),
+          value: v.VideoId
+        })),
+        onSelect: videoId => {
+          this.tag('Overlays.Select').alpha = 0;
+          this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId));
+        }
+      };
+      this._refocus();
+    }
+
     // --- Manejador para cerrar modal de búsqueda ---
     $closeSearchModal() {
       this.tag('Overlays.Search').alpha = 0;
-      this._focusedSection = 'header';
+      this._focusedSection = this._previousFocus || 'header';
       this._updateUI();
       this._refocus();
     }
@@ -9927,7 +9997,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     // --- Manejador para cerrar modal de selector ---
     $closeSelectModal() {
       this.tag('Overlays.Select').alpha = 0;
-      this._focusedSection = 'header';
+      this._focusedSection = this._previousFocus || 'header';
       this._updateUI();
       this._refocus();
     }
