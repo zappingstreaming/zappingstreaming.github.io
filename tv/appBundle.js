@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 13 Jun 2026 21:20:38 GMT
+ * Generated: Tue, 16 Jun 2026 22:12:58 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -7175,20 +7175,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       this._index = 0;
       this._buttons = ['RefreshBtn', 'InfoBtn'];
     }
-    _init() {
-      // Animación infinita para el spinner (girar 360 grados / 2 PI radianes)
-      this._spinAnim = this.tag('RefreshBtn.Icon').animation({
-        duration: 1,
-        repeat: -1,
-        actions: [{
-          p: 'rotation',
-          v: {
-            0: 0,
-            1: Math.PI * 2
-          }
-        }]
-      });
-    }
+    _init() {}
 
     // Equivalente a tus props
     set config(data) {
@@ -7202,11 +7189,8 @@ var APP_com_domain_app_ZappingStream = (function () {
       // Manejar el estado del botón Refresh
       if (isRefreshing) {
         this.tag('RefreshBtn').alpha = 0.5; // Lo mostramos visualmente "deshabilitado"
-        this._spinAnim.play(); // Iniciar giro
       } else {
         this.tag('RefreshBtn').alpha = 1;
-        this._spinAnim.pause();
-        this.tag('RefreshBtn.Icon').rotation = 0; // Resetear la rotación
       }
     }
 
@@ -7286,23 +7270,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         }
       };
     }
-    _init() {
-      // Creamos la animación de rotación infinita para el spinner
-      this._spinnerAnim = this.tag('Spinner').animation({
-        duration: 2,
-        repeat: -1,
-        actions: [{
-          p: 'rotation',
-          v: {
-            0: 0,
-            1: Math.PI * 2
-          }
-        }]
-      });
-      if (this._isLoadingFlag) {
-        this._spinnerAnim.play();
-      }
-    }
+    _init() {}
 
     // Este setter equivale a recibir los "props" en React
     set status(data) {
@@ -7315,12 +7283,10 @@ var APP_com_domain_app_ZappingStream = (function () {
 
       // Ocultamos el spinner por defecto en cada actualización
       this.tag('Spinner').alpha = 0;
-      if (this._spinnerAnim) this._spinnerAnim.pause();
       this._isLoadingFlag = isFetching || isLoading;
       if (this._isLoadingFlag) {
         this.alpha = 1;
         this.tag('Spinner').alpha = 1;
-        if (this._spinnerAnim) this._spinnerAnim.play();
         this.tag('Message').text.text = 'Conectando con el universo del stream argentino...';
       } else if (!hasChannels) {
         this.alpha = 1;
@@ -7757,33 +7723,37 @@ var APP_com_domain_app_ZappingStream = (function () {
           radius: 8
         },
         Fallback: {
-          w: w => w,
-          h: h => h,
+          w: w => w - 24,
+          // Achicamos 12px de cada lado
+          h: h => h - 24,
+          x: 12,
+          y: 12,
           rect: true,
           color: 0xff333333,
           // Fondo gris del fallback
-          Text: {
-            mount: 0.5,
-            x: w => w / 2,
-            y: h => h / 2,
-            text: {
-              text: '?',
-              fontSize: 64,
-              fontFace: 'Regular',
-              textColor: 0xff38b6ff // Letra color celeste
-            }
-          }
+          shader: {
+            type: Lightning$1.shaders.RoundedRectangle,
+            radius: 6
+          } // Le damos bordes redondeados internos
         },
         Image: {
-          w: w => w,
-          h: h => h,
-          alpha: 1 // DEBE iniciar en 1 para que WebGL fuerce la descarga de la textura
+          w: w => w - 24,
+          h: h => h - 24,
+          x: 12,
+          y: 12,
+          alpha: 1,
+          // DEBE iniciar en 1 para que WebGL fuerce la descarga de la textura
+          shader: {
+            type: Lightning$1.shaders.RoundedRectangle,
+            radius: 6
+          }
         },
         Badge: {
           mountX: 1,
           mountY: 1,
-          x: w => w - 8,
-          y: h => h - 8,
+          x: w => w - 20,
+          // Empujamos el cartelito de 'En Vivo' hacia adentro
+          y: h => h - 20,
           rect: true,
           color: 0x00000000,
           // Transparente por defecto
@@ -7824,19 +7794,6 @@ var APP_com_domain_app_ZappingStream = (function () {
       };
     }
     _init() {
-      // Animación de titilar para el badge de Vivo/Estreno
-      this._blinkAnim = this.tag('Badge.Dot').animation({
-        duration: 1.2,
-        repeat: -1,
-        actions: [{
-          p: 'alpha',
-          v: {
-            0: 1,
-            1: 0.3
-          }
-        }]
-      });
-
       // Escuchar error en la carga de la imagen
       this.tag('Image').on('txError', () => {
         this._handleImageError();
@@ -7852,8 +7809,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     _handleImageError() {
       this.tag('Image').alpha = 0;
       this.tag('Fallback').alpha = 1;
-      const letter = this._fallbackText ? this._fallbackText.substring(0, 1).toUpperCase() : '?';
-      this.tag('Fallback.Text').text.text = letter;
 
       // Llama al callback de error si fue provisto
       if (this.onImageError) {
@@ -7863,6 +7818,7 @@ var APP_com_domain_app_ZappingStream = (function () {
 
     // Setter equivalente a pasarle "props" desde React
     set item(data) {
+      const oldImageUrl = this._imageUrl;
       this._imageUrl = data.imageUrl;
       this._fallbackText = data.fallbackText;
       this.onClick = data.onClick;
@@ -7870,21 +7826,23 @@ var APP_com_domain_app_ZappingStream = (function () {
 
       // Si hay imagen, asigarla para iniciar la carga
       if (this._imageUrl) {
-        this.tag('Fallback').alpha = 1; // Aseguramos que el fallback se vea mientras carga
+        // Solo reiniciamos la carga si la URL es nueva. 
+        // Lightning no dispara 'txLoaded' si se reasigna la misma URL, dejando la imagen en 0.001
+        if (oldImageUrl !== this._imageUrl || !this.tag('Image').src) {
+          this.tag('Fallback').alpha = 1; // Aseguramos que el fallback se vea mientras carga
 
-        // TRUCO LIGHTNING: alpha debe ser > 0 para que el motor webGL NO la ignore y la descargue
-        this.tag('Image').alpha = 0.001;
+          // TRUCO LIGHTNING: alpha debe ser > 0 para que el motor webGL NO la ignore y la descargue
+          this.tag('Image').alpha = 0.001;
 
-        // OPTIMIZACIÓN: Pedir miniatura de menor peso (mqdefault 320x180) de YouTube
-        let finalSrc = this._imageUrl.replace(/(maxresdefault|hqdefault|sddefault)\.jpg/i, 'mqdefault.jpg');
+          // OPTIMIZACIÓN: Pedir miniatura de menor peso (mqdefault 320x180) de YouTube
+          let finalSrc = this._imageUrl.replace(/(maxresdefault|hqdefault|sddefault)\.jpg/i, 'mqdefault.jpg');
 
-        // --- SOLUCIÓN DEFINITIVA A CORS EN WEBGL ---
-        // WebGL es estricto: si YouTube no envía la cabecera CORS, la textura colapsa.
-        // Pasamos las imágenes de Google/YouTube por un Image CDN (wsrv.nl) que fuerza el CORS.
-        if (finalSrc.includes('ytimg.com') || finalSrc.includes('youtube.com') || finalSrc.includes('ggpht.com')) {
-          finalSrc = "https://wsrv.nl/?url=".concat(encodeURIComponent(finalSrc), "&w=400&output=webp");
+          // --- SOLUCIÓN DEFINITIVA A CORS EN WEBGL ---
+          if (finalSrc.includes('ytimg.com') || finalSrc.includes('youtube.com') || finalSrc.includes('ggpht.com')) {
+            finalSrc = "https://wsrv.nl/?url=".concat(encodeURIComponent(finalSrc), "&w=400&output=webp");
+          }
+          this.tag('Image').src = finalSrc;
         }
-        this.tag('Image').src = finalSrc;
       } else {
         this._handleImageError();
       }
@@ -7931,7 +7889,6 @@ var APP_com_domain_app_ZappingStream = (function () {
         strokeColor = isPremiere ? PREMIERE_COLOR : LIVE_COLOR;
       } else {
         badge.alpha = 0; // Ocultar si no cumple ninguna condición
-        if (this._blinkAnim) this._blinkAnim.pause();
         return;
       }
       label.text.text = text;
@@ -7939,12 +7896,10 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (hasDot) {
         dot.alpha = 1;
         label.x = 20; // Hacemos lugar para el punto
-        if (this._blinkAnim && !this._blinkAnim.isPlaying()) this._blinkAnim.play();
         badge.w = text.length * 8 + 30; // Aproximación ancho con punto
       } else {
         dot.alpha = 0;
         label.x = 8;
-        if (this._blinkAnim) this._blinkAnim.pause();
         badge.w = text.length * 8 + 16; // Aproximación ancho sin punto
       }
       badge.h = 26; // Alto fijo para el fondo
@@ -7964,22 +7919,10 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
 
     // Efecto visual cuando navegas hacia la tarjeta
-    _focus() {
-      this.patch({
-        smooth: {
-          scale: 1.05
-        }
-      });
-    }
+    _focus() {}
 
     // Efecto visual cuando sales de la tarjeta
-    _unfocus() {
-      this.patch({
-        smooth: {
-          scale: 1.0
-        }
-      });
-    }
+    _unfocus() {}
   }
 
   const getFreshImage = (url, dateString) => {
@@ -8269,9 +8212,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     _focus() {
       // Animación al enfocar la tarjeta (agrandado suave y resaltado de borde exagerado en TV)
       this.patch({
-        smooth: {
-          scale: 1.05
-        },
         color: 0xff2a2a2a,
         // background-color un poquito más claro
         shader: {
@@ -8286,9 +8226,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _unfocus() {
       this.patch({
-        smooth: {
-          scale: 1.0
-        },
         color: 0xff1a1a1a,
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
@@ -8370,9 +8307,6 @@ var APP_com_domain_app_ZappingStream = (function () {
             text: {
               textColor: COLORS.BG_BLACK
             }
-          },
-          smooth: {
-            scale: 1.1
           }
         });
       } else if (this._isSelected) {
@@ -8382,9 +8316,6 @@ var APP_com_domain_app_ZappingStream = (function () {
             text: {
               textColor: COLORS.BG_BLACK
             }
-          },
-          smooth: {
-            scale: 1.0
           }
         });
       } else {
@@ -8394,9 +8325,6 @@ var APP_com_domain_app_ZappingStream = (function () {
             text: {
               textColor: COLORS.TEXT_WHITE
             }
-          },
-          smooth: {
-            scale: 1.0
           }
         });
       }
@@ -8419,54 +8347,57 @@ var APP_com_domain_app_ZappingStream = (function () {
     static _template() {
       return {
         w: 380,
-        h: 400,
+        h: 320,
         rect: true,
         color: COLORS.BG_DARK,
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
           radius: BORDER_RADIUS.LARGE
         },
+        clipping: true,
+        VideoWrapper: {
+          y: 0,
+          x: 0,
+          w: 380,
+          h: 214,
+          type: VideoCard
+        },
         TimeBadge: {
           y: 12,
           x: 12,
-          h: 36,
+          h: 32,
           rect: true,
-          color: COLORS.BG_PANEL,
+          color: 0xd9000000,
           shader: {
             type: Lightning$1.shaders.RoundedRectangle,
             radius: BORDER_RADIUS.MEDIUM
           },
+          zIndex: 2,
           Label: {
             x: 12,
             mountY: 0.5,
-            y: 20,
+            y: 17,
             text: {
               text: '',
-              fontSize: 20,
+              fontSize: 18,
               fontFace: TYPOGRAPHY.FONT_FAMILY,
               textColor: COLORS.TEXT_WHITE
             }
           }
         },
-        VideoWrapper: {
-          y: 60,
-          w: 380,
-          h: 214,
-          type: VideoCard
-        },
         Title: {
-          y: 290,
+          y: 230,
           x: 16,
           w: 348,
           text: {
             text: '',
-            fontSize: 24,
+            fontSize: 22,
             fontFace: TYPOGRAPHY.FONT_FAMILY,
             textColor: COLORS.TEXT_WHITE,
-            maxLines: 3,
+            maxLines: 2,
             textOverflow: 'ellipsis',
             wordWrapWidth: 348,
-            lineHeight: 30
+            lineHeight: 28
           }
         }
       };
@@ -8516,9 +8447,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _focus() {
       this.patch({
-        smooth: {
-          scale: 1.05
-        },
         color: COLORS.BG_PANEL,
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
@@ -8531,9 +8459,6 @@ var APP_com_domain_app_ZappingStream = (function () {
     }
     _unfocus() {
       this.patch({
-        smooth: {
-          scale: 1.0
-        },
         color: COLORS.BG_DARK,
         shader: {
           type: Lightning$1.shaders.RoundedRectangle,
@@ -8557,11 +8482,11 @@ var APP_com_domain_app_ZappingStream = (function () {
     static _template() {
       return {
         w: 1920,
-        h: 460,
+        h: 360,
         // Altura fija de la fila
         Sidebar: {
           w: 180,
-          h: 440,
+          h: 340,
           rect: true,
           color: COLORS.BG_BLACK,
           Logo: {
@@ -8591,7 +8516,7 @@ var APP_com_domain_app_ZappingStream = (function () {
           },
           InfoBtn: {
             x: 30,
-            y: 280,
+            y: 240,
             w: 120,
             h: 54,
             rect: true,
@@ -8618,7 +8543,7 @@ var APP_com_domain_app_ZappingStream = (function () {
           x: 200,
           y: -10,
           w: 1720,
-          h: 480,
+          h: 380,
           clipping: true,
           Slider: {
             x: 0,
@@ -8698,7 +8623,6 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false;
     }
     _updateScroll() {
-      let instant = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       // Lógica de Sidebar Foco vs Video Foco
       if (this._index === 0) {
         // Foco en Botón Info
@@ -8713,15 +8637,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         if (evIndex > 0) {
           targetX = -(evIndex * 400) + 60; // Desplazar exacto dejando 60px de margen respecto a la columna
         }
-        if (instant) {
-          this.tag('TrackBounds.Slider').x = targetX;
-        } else {
-          this.tag('TrackBounds.Slider').patch({
-            smooth: {
-              x: targetX
-            }
-          });
-        }
+        this.tag('TrackBounds.Slider').x = targetX;
       }
 
       // Virtualización Horizontal
@@ -9014,11 +8930,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     _handleLeft() {
       if (this._focusY === 0 && this._dayIndex > 0) {
         this._dayIndex--;
-        this.tag('DaysRailBounds.Slider').patch({
-          smooth: {
-            x: -(this._dayIndex * 212) + 500
-          }
-        });
+        this.tag('DaysRailBounds.Slider').x = -(this._dayIndex * 212) + 500;
         this._refocus();
         return true;
       }
@@ -9027,11 +8939,7 @@ var APP_com_domain_app_ZappingStream = (function () {
     _handleRight() {
       if (this._focusY === 0 && this._dayIndex < this._dayButtons.length - 1) {
         this._dayIndex++;
-        this.tag('DaysRailBounds.Slider').patch({
-          smooth: {
-            x: -(this._dayIndex * 212) + 500
-          }
-        });
+        this.tag('DaysRailBounds.Slider').x = -(this._dayIndex * 212) + 500;
         this._refocus();
         return true;
       }
@@ -9042,19 +8950,11 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (this._focusY > 0) {
         let targetY = 0;
         if (rowIndex > 1) {
-          targetY = -((rowIndex - 1) * 460); // Altura de fila: 460px
+          targetY = -((rowIndex - 1) * 360); // Altura de fila: 360px
         }
-        this.tag('EpgContainerBounds.Slider').patch({
-          smooth: {
-            y: targetY
-          }
-        });
+        this.tag('EpgContainerBounds.Slider').y = targetY;
       } else {
-        this.tag('EpgContainerBounds.Slider').patch({
-          smooth: {
-            y: 0
-          }
-        });
+        this.tag('EpgContainerBounds.Slider').y = 0;
       }
 
       // Virtualización vertical
@@ -9074,7 +8974,7 @@ var APP_com_domain_app_ZappingStream = (function () {
         const row = this._rowsComponents[poolIndex];
         if (row._currentDataIdx !== i) {
           row.patch({
-            y: i * 460,
+            y: i * 360,
             alpha: 1,
             item: {
               row: data,
@@ -9240,20 +9140,11 @@ var APP_com_domain_app_ZappingStream = (function () {
       return false;
     }
     _updateScroll() {
-      let instant = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       if (!this._channelData || this._channelData.length === 0) return;
       const targetChannel = this._channelData[this._index];
       if (targetChannel) {
         let targetX = 60 - targetChannel.x;
-        if (instant) {
-          this.tag('Slider').x = targetX;
-        } else {
-          this.tag('Slider').patch({
-            smooth: {
-              x: targetX
-            }
-          });
-        }
+        this.tag('Slider').x = targetX;
       }
 
       // Ventana de Virtualización
@@ -9789,27 +9680,6 @@ var APP_com_domain_app_ZappingStream = (function () {
       };
     }
     _init() {
-      // Animación del fondo
-      this.tag('Background').animation({
-        duration: 15,
-        repeat: -1,
-        actions: [{
-          t: '',
-          p: 'color',
-          v: {
-            0: {
-              v: 0xfffbb03b
-            },
-            0.5: {
-              v: 0xfff46730
-            },
-            0.8: {
-              v: 0xfffbb03b
-            }
-          }
-        }]
-      }).start();
-
       // --- Estado Principal de la Aplicación ---
       this._channels = [];
       this._allChannels = []; // Almacenar lista completa para filtrado
