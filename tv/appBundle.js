@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Tue, 16 Jun 2026 22:41:30 GMT
+ * Generated: Thu, 18 Jun 2026 11:50:57 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -9071,6 +9071,12 @@ var APP_com_domain_app_ZappingStream = (function () {
         onVideoError: videoId => this._handleVideoError(videoId)
       };
 
+      // Guardar el nombre del canal actualmente enfocado para no perder su posición
+      let currentFocusedChannel = null;
+      if (this._channelData && this._channelData[this._index]) {
+        currentFocusedChannel = this._channelData[this._index].channel.ChannelName;
+      }
+
       // Limpiar el pool para forzar re-renderizado
       this._cardsPool.forEach(card => {
         card._currentDataIdx = -1;
@@ -9078,7 +9084,14 @@ var APP_com_domain_app_ZappingStream = (function () {
         card.x = -9999;
       });
       this._buildData();
-      this._index = 0;
+
+      // Restaurar el índice si el canal sigue existiendo en la fila, de lo contrario volver al inicio
+      if (currentFocusedChannel) {
+        const newIndex = this._channelData.findIndex(d => d.channel.ChannelName === currentFocusedChannel);
+        this._index = newIndex !== -1 ? newIndex : 0;
+      } else {
+        this._index = 0;
+      }
       this._updateScroll(true); // Posicionamiento inicial instantáneo
     }
     _handleVideoError(videoId) {
@@ -10002,16 +10015,12 @@ var APP_com_domain_app_ZappingStream = (function () {
       if (typeof tizen !== 'undefined' && tizen.application) {
         try {
           const appControl = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', url);
-          tizen.application.launchAppControl(appControl, '111299001912',
-          // ID oficial de la app de YouTube en Tizen
-          () => console.log('YouTube nativo lanzado en Tizen'), e => {
+          tizen.application.launchAppControl(appControl, '111299001912', () => console.log('YouTube nativo lanzado en Tizen'), e => {
             console.error('Fallo al abrir YouTube en Tizen:', e.message);
-            window.open(url, '_blank');
+            // 🚫 NUNCA hacer window.open acá. Tu app moriría.
           });
           return;
-        } catch (err) {
-          console.error('Error usando tizen.application:', err);
-        }
+        } catch (err) {}
       }
 
       // 2. WebOS (LG Smart TV)
