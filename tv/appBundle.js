@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Thu, 18 Jun 2026 11:50:57 GMT
+ * Generated: Fri, 19 Jun 2026 20:57:45 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -9964,8 +9964,9 @@ var APP_com_domain_app_ZappingStream = (function () {
     // --- Lógica para abrir el canal directamente ---
     _playChannel(channel) {
       let videoId = null;
+      let isLive = false;
 
-      // 1. Si hay videos activos (En Vivo o Estrenos), buscar el ID del principal
+      // 1. Buscamos en vivo primero...
       if (channel.Actives && Object.keys(channel.Actives).length > 0) {
         const activeVideos = Object.values(channel.Actives).sort((a, b) => {
           if (a.IsPremiere && !b.IsPremiere) return 1;
@@ -9975,20 +9976,46 @@ var APP_com_domain_app_ZappingStream = (function () {
           return timeB - timeA;
         });
         videoId = activeVideos[0].VideoId;
-      }
-      // 2. Si no hay activos, ver si hay un link directo en ChannelLiveUrl (ej: youtube.com/watch?v=...)
-      else if (channel.ChannelLiveUrl) {
+        isLive = true;
+      } else if (channel.ChannelLiveUrl) {
         const match = channel.ChannelLiveUrl.match(/v=([^&]+)/);
         if (match && match[1]) {
           videoId = match[1];
         }
       }
-      if (videoId) {
-        this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId));
+
+      // 2. Tomamos la decisión
+      if (isLive && videoId) {
+        // EN VIVO: Reproductor interno
+        this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId), true);
       } else {
-        // OFFLINE: Redirigimos a la pestaña de transmisiones del canal de YouTube usando su ID exacto
-        const targetUrl = channel.ChannelLiveUrl.replace("/live", "/streams");
-        this._openPlayer(targetUrl);
+        // ON DEMAND / OFFLINE: Vamos a la app nativa
+        let targetUrl = '';
+        if (videoId) {
+          // Si por algún motivo tenía un video específico guardado
+          targetUrl = "https://www.youtube.com/watch?v=".concat(videoId);
+        } else {
+          // ACÁ ESTÁ LA MAGIA: Intentamos extraer el ID del canal ("UC...")
+          // Asumimos que tenés el ID guardado en tu objeto channel, o lo extraemos de la URL
+          let channelId = channel.ChannelId || null;
+          if (!channelId && channel.ChannelLiveUrl) {
+            const idMatch = channel.ChannelLiveUrl.match(/channel\/(UC[\w-]+)/);
+            if (idMatch && idMatch[1]) channelId = idMatch[1];
+          }
+          if (channelId && channelId.startsWith('UC')) {
+            // Cambiamos "UC" por "UU" para crear el ID de la Playlist de uploads
+            const playlistId = 'UU' + channelId.substring(2);
+            targetUrl = "https://www.youtube.com/playlist?list=".concat(playlistId);
+          } else {
+            // Si no tenemos el ID "UC...", mandamos la URL original y que la tele decida si la soporta
+            targetUrl = channel.ChannelLiveUrl || '';
+          }
+        }
+
+        // Mandamos al reproductor (con isLive = false para que dispare el Deep Link)
+        if (targetUrl) {
+          this._openPlayer(targetUrl, false);
+        }
       }
     }
 
