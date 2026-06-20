@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Sat, 20 Jun 2026 01:32:19 GMT
+ * Generated: Sat, 20 Jun 2026 15:08:42 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -10005,9 +10005,25 @@ var APP_com_domain_app_ZappingStream = (function () {
           if (channelId && channelId.startsWith('UC')) {
             // Cambiamos "UC" por "UU" para crear el ID de la Playlist de uploads
             const playlistId = 'UU' + channelId.substring(2);
-            // Tizen y WebOS a veces ignoran /playlist?list=
-            // Forzamos formato de video vacío con playlist para engañar al deep link
-            targetUrl = "https://www.youtube.com/watch?v=&list=".concat(playlistId);
+
+            // Tizen necesita un ID de video real en 'v=' para no fallar el deep link.
+            // Buscamos un video reciente del canal (Past o Upcoming) para usarlo como punto de entrada.
+            let firstVid = null;
+            if (channel.Past && Object.keys(channel.Past).length > 0) {
+              const pastVideos = Object.values(channel.Past);
+              if (pastVideos.length > 0) firstVid = pastVideos[0].VideoId;
+            }
+            if (!firstVid && channel.Upcoming && Object.keys(channel.Upcoming).length > 0) {
+              const upcomingVideos = Object.values(channel.Upcoming);
+              if (upcomingVideos.length > 0) firstVid = upcomingVideos[0].VideoId;
+            }
+            if (firstVid) {
+              // Pasamos un video real + la playlist para que Tizen lo abra sin quejarse
+              targetUrl = "https://www.youtube.com/watch?v=".concat(firstVid, "&list=").concat(playlistId);
+            } else {
+              // Fallback si no hay videos guardados
+              targetUrl = "https://www.youtube.com/playlist?list=".concat(playlistId);
+            }
           } else {
             // Si no tenemos el ID "UC...", mandamos la URL original y que la tele decida si la soporta
             targetUrl = channel.ChannelLiveUrl || '';
@@ -10045,6 +10061,11 @@ var APP_com_domain_app_ZappingStream = (function () {
 
     // --- Helper para lanzar la app NATIVA de YouTube según el Sistema Operativo ---
     _launchNativeYouTube(url) {
+      // Detectamos si es una playlist
+      const listMatch = url.match(/[?&]list=([^&]+)/);
+      const playlistId = listMatch ? listMatch[1] : null;
+      const isPlaylist = url.includes('/playlist?') || listMatch && !url.match(/v=[^&]+/);
+
       // 1. Tizen (Samsung Smart TV)
       if (typeof tizen !== 'undefined' && tizen.application) {
         try {
@@ -10059,14 +10080,18 @@ var APP_com_domain_app_ZappingStream = (function () {
 
       // 2. WebOS (LG Smart TV)
       if (window.webOS && window.webOS.service) {
+        // Para WebOS, las playlists a veces requieren contentId en lugar de contentTarget
+        const params = isPlaylist && playlistId ? {
+          contentId: "list=".concat(playlistId)
+        } : {
+          contentTarget: url
+        };
         window.webOS.service.request('luna://com.webos.applicationManager', {
           method: 'launch',
           parameters: {
             id: 'youtube.leanback.v4',
             // ID oficial de YouTube en WebOS
-            params: {
-              contentTarget: url
-            }
+            params: params
           },
           onFailure: e => {
             console.error('Fallo al abrir YouTube en WebOS:', e);
