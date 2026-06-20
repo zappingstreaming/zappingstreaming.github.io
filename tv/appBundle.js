@@ -3,7 +3,7 @@
  * SDK version: 5.5.7
  * CLI version: 2.14.2
  * 
- * Generated: Fri, 19 Jun 2026 20:57:45 GMT
+ * Generated: Sat, 20 Jun 2026 01:32:19 GMT
  */
 
 var APP_com_domain_app_ZappingStream = (function () {
@@ -9987,7 +9987,7 @@ var APP_com_domain_app_ZappingStream = (function () {
       // 2. Tomamos la decisión
       if (isLive && videoId) {
         // EN VIVO: Reproductor interno
-        this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId), true);
+        this._openPlayer("https://www.youtube.com/watch?v=".concat(videoId));
       } else {
         // ON DEMAND / OFFLINE: Vamos a la app nativa
         let targetUrl = '';
@@ -10005,22 +10005,29 @@ var APP_com_domain_app_ZappingStream = (function () {
           if (channelId && channelId.startsWith('UC')) {
             // Cambiamos "UC" por "UU" para crear el ID de la Playlist de uploads
             const playlistId = 'UU' + channelId.substring(2);
-            targetUrl = "https://www.youtube.com/playlist?list=".concat(playlistId);
+            // Tizen y WebOS a veces ignoran /playlist?list=
+            // Forzamos formato de video vacío con playlist para engañar al deep link
+            targetUrl = "https://www.youtube.com/watch?v=&list=".concat(playlistId);
           } else {
             // Si no tenemos el ID "UC...", mandamos la URL original y que la tele decida si la soporta
             targetUrl = channel.ChannelLiveUrl || '';
           }
         }
 
-        // Mandamos al reproductor (con isLive = false para que dispare el Deep Link)
+        // Mandamos a abrir nativamente
         if (targetUrl) {
-          this._openPlayer(targetUrl, false);
+          this._openPlayer(targetUrl, true);
         }
       }
     }
 
     // --- Abrir Reproductor ---
     _openPlayer(url) {
+      let forceNative = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      if (forceNative) {
+        this._launchNativeYouTube(url);
+        return;
+      }
       const match = url.match(/v=([^&]+)/);
       if (match && match[1]) {
         this._focusedSection = 'player';
